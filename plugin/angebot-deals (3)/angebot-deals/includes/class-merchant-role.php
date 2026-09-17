@@ -49,6 +49,7 @@ final class Angebot_Deals_Merchant_Role
             'upload_files'           => true,
             'angebot_redeem_voucher' => true,
             'angebot_view_own_deals' => true,
+            'angebot_submit_deal'    => true,
         ];
 
         $role = get_role(self::ROLE);
@@ -68,6 +69,7 @@ final class Angebot_Deals_Merchant_Role
         if ($admin) {
             $admin->add_cap('angebot_redeem_voucher');
             $admin->add_cap('angebot_view_own_deals');
+            $admin->add_cap('angebot_submit_deal');
         }
     }
 

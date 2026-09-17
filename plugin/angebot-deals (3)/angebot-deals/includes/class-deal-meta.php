@@ -79,14 +79,19 @@ final class Angebot_Deals_Deal_Meta
             </div>
             <div>
                 <label for="merchant_user_id"><?php esc_html_e('Merchant user', 'angebot-deals'); ?></label>
-                <select id="merchant_user_id" name="angebot_meta[merchant_user_id]">
-                    <option value="0"><?php esc_html_e('— None —', 'angebot-deals'); ?></option>
-                    <?php foreach ($merchants as $user) : ?>
-                        <option value="<?php echo esc_attr((string) $user->ID); ?>" <?php selected((int) $data['merchant_user_id'], (int) $user->ID); ?>>
-                            <?php echo esc_html($user->display_name . ' (' . $user->user_email . ')'); ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
+                <?php if (current_user_can('manage_options')) : ?>
+                    <select id="merchant_user_id" name="angebot_meta[merchant_user_id]">
+                        <option value="0"><?php esc_html_e('— None —', 'angebot-deals'); ?></option>
+                        <?php foreach ($merchants as $user) : ?>
+                            <option value="<?php echo esc_attr((string) $user->ID); ?>" <?php selected((int) $data['merchant_user_id'], (int) $user->ID); ?>>
+                                <?php echo esc_html($user->display_name . ' (' . $user->user_email . ')'); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                <?php else : ?>
+                    <input type="text" value="<?php echo esc_attr(wp_get_current_user()->display_name); ?>" disabled>
+                    <p class="description"><?php esc_html_e('Deals you create are automatically assigned to you.', 'angebot-deals'); ?></p>
+                <?php endif; ?>
             </div>
             <div>
                 <label for="location_label"><?php esc_html_e('Location label (display)', 'angebot-deals'); ?></label>
@@ -142,12 +147,19 @@ final class Angebot_Deals_Deal_Meta
             $discount = (int) round((($original - $deal) / $original) * 100);
         }
 
+        // Non-admins (merchants) can only ever be the merchant on their own
+        // deals — never trust a posted merchant_user_id from them, in case
+        // the disabled field in the metabox was tampered with client-side.
+        $merchant_user_id = current_user_can('manage_options')
+            ? absint($raw['merchant_user_id'] ?? 0)
+            : get_current_user_id();
+
         $values = [
             'original_price'   => $original,
             'deal_price'       => $deal,
             'discount_percent' => max(0, min(100, $discount)),
             'merchant_name'    => sanitize_text_field((string) ($raw['merchant_name'] ?? '')),
-            'merchant_user_id' => absint($raw['merchant_user_id'] ?? 0),
+            'merchant_user_id' => $merchant_user_id,
             'location_label'   => sanitize_text_field((string) ($raw['location_label'] ?? '')),
             'voucher_expires'  => sanitize_text_field((string) ($raw['voucher_expires'] ?? '')),
             'quantity'         => absint($raw['quantity'] ?? 0),
