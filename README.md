@@ -87,8 +87,11 @@ Benefit type, disability-related proof, and the uploaded document are **special 
 ### Merchant workflow
 
 1. Create a user with the **Merchant** role.
-2. Assign them on the deal under “Merchant user”.
-3. Merchants only see their own deals and can redeem codes/QR under **Vouchers** or a page with `[angebot_merchant_portal]`.
+2. On the page using `[angebot_merchant_portal]` (or `page-templates/merchant-portal.php`), a merchant can now:
+   - **Submit a new deal** — title, category, city, prices, quota, description, optional photo. It's saved as `pending`; the admin is emailed and publishes it from wp-admin like any other post. (Submitting while logged in as an admin publishes immediately, for quick testing.)
+   - See **Your deals** with live status (Live / Pending review / Draft).
+   - **Check & redeem** a customer's voucher code/QR, as before.
+3. Merchants only ever see and edit their own deals (`merchant_user_id` is locked to themselves, both in this frontend form and in the wp-admin metabox).
 4. QR opens `/voucher/{token}/` — logged-in merchants can approve redemption there.
 
 ## Branding (important)

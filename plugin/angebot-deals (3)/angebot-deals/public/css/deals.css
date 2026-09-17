@@ -538,6 +538,69 @@
   color: #5b6773;
 }
 
+.angebot-deal-submit-form {
+  display: grid;
+  gap: 1rem;
+  max-width: 640px;
+  margin-top: 1rem;
+}
+
+.angebot-deal-submit-form label {
+  display: grid;
+  gap: .35rem;
+  font-weight: 600;
+  font-size: .9rem;
+}
+
+.angebot-deal-submit-form input,
+.angebot-deal-submit-form select,
+.angebot-deal-submit-form textarea {
+  font: inherit;
+  border: 1px solid #d1d5db;
+  border-radius: 3px;
+  padding: .55rem .65rem;
+  background: #fff;
+  width: 100%;
+}
+
+.angebot-deal-submit-form__row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.angebot-deal-submit-form__note {
+  font-size: .85rem;
+  color: #5b6773;
+  margin: 0;
+}
+
+.angebot-my-deals-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.angebot-my-deals-table th,
+.angebot-my-deals-table td {
+  text-align: left;
+  padding: .6rem .75rem;
+  border-bottom: 1px solid #f0f1f3;
+  font-size: .9rem;
+}
+
+.angebot-deal-status {
+  display: inline-block;
+  padding: .25rem .6rem;
+  border-radius: 999px;
+  font-size: .78rem;
+  font-weight: 700;
+}
+
+.angebot-deal-status--publish { background: #EAF4F2; color: #205951; }
+.angebot-deal-status--pending { background: #fff4e0; color: #92610a; }
+.angebot-deal-status--draft   { background: #eef2f6; color: #4b5563; }
+
 @media (max-width: 600px) {
   .angebot-deals-grid,
   .angebot-deals-grid[data-columns="2"],

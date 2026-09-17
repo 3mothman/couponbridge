@@ -5,6 +5,18 @@ if (!defined('ABSPATH')) {
     exit;
 }
 ?>
+<?php if (current_user_can('angebot_submit_deal')) : ?>
+<div class="angebot-merchant-portal">
+    <h2><?php esc_html_e('Submit a new deal', 'angebot-deals'); ?></h2>
+    <?php echo Angebot_Deals_Merchant_Portal::render_submit_deal_form(); ?>
+</div>
+
+<div class="angebot-merchant-portal">
+    <h2><?php esc_html_e('Your deals', 'angebot-deals'); ?></h2>
+    <?php echo Angebot_Deals_Merchant_Portal::render_my_deals_list(); ?>
+</div>
+<?php endif; ?>
+
 <div class="angebot-merchant-portal">
     <h2><?php esc_html_e('Check & redeem voucher', 'angebot-deals'); ?></h2>
     <form id="angebot-merchant-lookup" class="angebot-merchant-lookup">
