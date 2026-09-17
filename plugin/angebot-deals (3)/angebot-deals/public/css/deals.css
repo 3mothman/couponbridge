@@ -408,6 +408,136 @@
   }
 }
 
+.angebot-notice {
+  padding: .85rem 1rem;
+  border-radius: 4px;
+  margin-bottom: 1.25rem;
+  border: 1px solid transparent;
+}
+
+.angebot-notice p { margin: 0 0 .25rem; }
+.angebot-notice p:last-child { margin-bottom: 0; }
+
+.angebot-notice--success { background: #EAF4F2; border-color: #bfe0d9; color: #205951; }
+.angebot-notice--error   { background: #fdecec; border-color: #f3c6c6; color: #8a2323; }
+
+.angebot-membership { max-width: 640px; }
+
+.angebot-membership__badge {
+  display: inline-block;
+  padding: .35rem .75rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: .85rem;
+  margin-bottom: 1rem;
+}
+
+.angebot-membership__badge--unverified { background: #eef2f6; color: #4b5563; }
+.angebot-membership__badge--pending    { background: #fff4e0; color: #92610a; }
+.angebot-membership__badge--verified   { background: #EAF4F2; color: #205951; }
+.angebot-membership__badge--rejected   { background: #fdecec; color: #8a2323; }
+
+.angebot-membership__summary {
+  margin: 1rem 0;
+  border-collapse: collapse;
+}
+
+.angebot-membership__summary th,
+.angebot-membership__summary td {
+  text-align: left;
+  padding: .4rem .75rem .4rem 0;
+  border-bottom: 1px solid #f0f1f3;
+}
+
+.angebot-eligibility-form {
+  display: grid;
+  gap: 1rem;
+  max-width: 520px;
+  margin-top: 1rem;
+}
+
+.angebot-eligibility-form label {
+  display: grid;
+  gap: .35rem;
+  font-weight: 600;
+  font-size: .9rem;
+}
+
+.angebot-eligibility-form select,
+.angebot-eligibility-form input[type="file"] {
+  font: inherit;
+  border: 1px solid #d1d5db;
+  border-radius: 3px;
+  padding: .55rem .65rem;
+  background: #fff;
+}
+
+.angebot-eligibility-form__intro {
+  color: #4b5563;
+  font-size: .92rem;
+}
+
+.angebot-eligibility-form__consent {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: .6rem;
+  font-weight: 400;
+  font-size: .85rem;
+  color: #4b5563;
+}
+
+.angebot-eligibility-form__consent input { margin-top: .2rem; }
+
+.angebot-my-deals__list {
+  display: grid;
+  gap: 1rem;
+}
+
+.angebot-my-deal {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid #e6e8ec;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.angebot-my-deal h3 { margin: 0 0 .3rem; font-size: 1rem; }
+.angebot-my-deal h3 a { color: #17293F; text-decoration: none; }
+.angebot-my-deal .angebot-voucher-code { margin: 0 0 .3rem; font-weight: 700; letter-spacing: .08em; }
+
+.angebot-impact__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+  text-align: center;
+  margin: 1.5rem 0;
+}
+
+.angebot-impact__stat {
+  background: #fff;
+  border: 1px solid #e6e8ec;
+  border-radius: 6px;
+  padding: 1.5rem 1rem;
+}
+
+.angebot-impact__number {
+  display: block;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #17293F;
+}
+
+.angebot-impact__label {
+  display: block;
+  margin-top: .3rem;
+  font-size: .85rem;
+  color: #5b6773;
+}
+
 @media (max-width: 600px) {
   .angebot-deals-grid,
   .angebot-deals-grid[data-columns="2"],

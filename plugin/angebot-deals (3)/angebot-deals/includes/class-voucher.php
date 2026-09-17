@@ -12,6 +12,8 @@ final class Angebot_Deals_Voucher
     public const STATUS_EXPIRED   = 'expired';
     public const STATUS_CANCELLED = 'cancelled';
 
+    public const ENDPOINT = 'my-deals';
+
     public static function register_hooks(): void
     {
         add_action('woocommerce_order_status_completed', [self::class, 'generate_for_order']);
@@ -23,6 +25,44 @@ final class Angebot_Deals_Voucher
         if (!wp_next_scheduled('angebot_deals_daily_expiry')) {
             wp_schedule_event(time() + HOUR_IN_SECONDS, 'daily', 'angebot_deals_daily_expiry');
         }
+
+        // "My redeemed deals" — a My Account tab beyond WooCommerce's
+        // default order history, focused on voucher/redemption status.
+        add_action('init', [self::class, 'add_endpoint']);
+        add_filter('woocommerce_account_menu_items', [self::class, 'account_menu_items'], 21);
+        add_action('woocommerce_account_' . self::ENDPOINT . '_endpoint', [self::class, 'account_endpoint_content']);
+        add_filter('woocommerce_endpoint_' . self::ENDPOINT . '_title', [self::class, 'account_endpoint_title']);
+    }
+
+    public static function add_endpoint(): void
+    {
+        add_rewrite_endpoint(self::ENDPOINT, EP_ROOT | EP_PAGES);
+    }
+
+    public static function account_menu_items(array $items): array
+    {
+        $insert = ['my-deals' => __('My Deals', 'angebot-deals')];
+        $after  = array_key_exists('membership', $items) ? 'membership' : 'orders';
+        $pos    = array_search($after, array_keys($items), true);
+
+        if ($pos === false) {
+            return $insert + $items;
+        }
+
+        return array_slice($items, 0, $pos + 1, true)
+            + $insert
+            + array_slice($items, $pos + 1, null, true);
+    }
+
+    public static function account_endpoint_title(string $title): string
+    {
+        return __('My Deals', 'angebot-deals');
+    }
+
+    public static function account_endpoint_content(): void
+    {
+        $vouchers = self::get_for_user(get_current_user_id());
+        include ANGEBOT_DEALS_PATH . 'templates/my-deals.php';
     }
 
     public static function table(): string
@@ -58,6 +98,7 @@ final class Angebot_Deals_Voucher
                     'product_id'      => $product_id,
                     'order_id'        => $order_id,
                     'order_item_id'   => (int) $item_id,
+                    'user_id'         => (int) $order->get_customer_id(),
                     'customer_email'  => $order->get_billing_email(),
                     'customer_name'   => trim($order->get_billing_first_name() . ' ' . $order->get_billing_last_name()),
                     'merchant_user_id'=> (int) Angebot_Deals_Deal_Meta::get($deal_id, 'merchant_user_id', 0),
@@ -113,6 +154,7 @@ final class Angebot_Deals_Voucher
                 'product_id'       => (int) ($args['product_id'] ?? 0),
                 'order_id'         => (int) $args['order_id'],
                 'order_item_id'    => (int) ($args['order_item_id'] ?? 0),
+                'user_id'          => (int) ($args['user_id'] ?? 0),
                 'customer_email'   => sanitize_email((string) $args['customer_email']),
                 'customer_name'    => sanitize_text_field((string) ($args['customer_name'] ?? '')),
                 'merchant_user_id' => (int) ($args['merchant_user_id'] ?? 0),
@@ -121,7 +163,7 @@ final class Angebot_Deals_Voucher
                 'qr_token'         => $qr_token,
                 'created_at'       => current_time('mysql'),
             ],
-            ['%s', '%d', '%d', '%d', '%d', '%s', '%s', '%d', '%s', '%s', '%s', '%s']
+            ['%s', '%d', '%d', '%d', '%d', '%d', '%s', '%s', '%d', '%s', '%s', '%s', '%s']
         );
 
         if (!$inserted) {
@@ -201,6 +243,15 @@ final class Angebot_Deals_Voucher
         return $wpdb->get_results($wpdb->prepare(
             'SELECT * FROM ' . self::table() . ' WHERE order_id = %d ORDER BY id ASC',
             $order_id
+        )) ?: [];
+    }
+
+    public static function get_for_user(int $user_id): array
+    {
+        global $wpdb;
+        return $wpdb->get_results($wpdb->prepare(
+            'SELECT * FROM ' . self::table() . ' WHERE user_id = %d ORDER BY created_at DESC',
+            $user_id
         )) ?: [];
     }
 

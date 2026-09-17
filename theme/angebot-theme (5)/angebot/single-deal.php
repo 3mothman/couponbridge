@@ -98,15 +98,25 @@ while (have_posts()) :
                         </p>
                     <?php endif; ?>
 
-                    <?php if ($remaining > 0 && $product_id) : ?>
-                        <a class="angebot-btn angebot-btn--primary buybox__cta" href="<?php echo esc_url(angebot_deal_buy_url($deal_id)); ?>">
-                            <?php esc_html_e('Buy now', 'angebot'); ?>
-                        </a>
+                    <?php $cta = class_exists('Angebot_Deals_Membership')
+                        ? Angebot_Deals_Membership::cta_for_deal($deal_id, $product_id, $remaining)
+                        : ($remaining > 0 && $product_id
+                            ? ['url' => angebot_deal_buy_url($deal_id), 'label' => __('Buy now', 'angebot'), 'disabled' => false]
+                            : ['url' => '#', 'label' => __('Sold out', 'angebot'), 'disabled' => true]);
+                    ?>
+                    <?php if ($cta['disabled']) : ?>
+                        <span class="angebot-btn angebot-btn--disabled buybox__cta"><?php echo esc_html($cta['label']); ?></span>
                     <?php else : ?>
-                        <span class="angebot-btn angebot-btn--disabled buybox__cta"><?php esc_html_e('Sold out', 'angebot'); ?></span>
+                        <a class="angebot-btn angebot-btn--primary buybox__cta" href="<?php echo esc_url($cta['url']); ?>">
+                            <?php echo esc_html($cta['label']); ?>
+                        </a>
                     <?php endif; ?>
 
-                    <p class="buybox__note"><?php esc_html_e('After purchase you will receive your voucher by email — including a QR code.', 'angebot'); ?></p>
+                    <?php if (is_user_logged_in() && class_exists('Angebot_Deals_Membership') && !Angebot_Deals_Membership::can_purchase(get_current_user_id())) : ?>
+                        <p class="buybox__note"><?php esc_html_e('You need a verified Highbridge membership to buy deals. Verification usually only takes a couple of days.', 'angebot'); ?></p>
+                    <?php else : ?>
+                        <p class="buybox__note"><?php esc_html_e('After purchase you will receive your voucher by email — including a QR code.', 'angebot'); ?></p>
+                    <?php endif; ?>
                 </div>
             </aside>
         </div>

@@ -37,8 +37,11 @@ final class Angebot_Deals_Plugin
         Angebot_Deals_Location::register_hooks();
         Angebot_Deals_Admin::register_hooks();
         Angebot_Deals_QR_Code::register_hooks();
+        Angebot_Deals_Membership::register_hooks();
+        Angebot_Deals_Eligibility::register_hooks();
+        Angebot_Deals_Impact::register_hooks();
 
-        add_action('init', [$this, 'maybe_upgrade']);
+        add_action('init', [$this, 'maybe_upgrade'], 20);
     }
 
     public function maybe_upgrade(): void
@@ -50,6 +53,13 @@ final class Angebot_Deals_Plugin
 
         Angebot_Deals_Activator::create_voucher_table();
         Angebot_Deals_Activator::create_reviews_table();
+        Angebot_Deals_Activator::create_eligibility_table();
+        Angebot_Deals_Eligibility::grant_admin_capability();
+        Angebot_Deals_Impact::maybe_create_page();
+        // New rewrite endpoints (membership, my-deals) were just registered
+        // above via register_hooks() -> add_endpoint(); flush so they work
+        // immediately instead of 404ing until someone re-saves Permalinks.
+        flush_rewrite_rules();
         update_option('angebot_deals_version', ANGEBOT_DEALS_VERSION);
     }
 }
