@@ -43,6 +43,11 @@ Default city is **London**. Seeded UK cities include London, Manchester, Birming
 | Reviews with moderation | ✅ |
 | Legal pages (English templates) | ✅ |
 | Demo deals | ✅ |
+| Extended registration (name, DOB, phone, address) | ✅ |
+| Eligibility verification (benefit + proof document, manual review) | ✅ |
+| Digital membership status gate (pending/verified/rejected) on checkout | ✅ |
+| "My Deals" redemption history (My Account tab) | ✅ |
+| Impact dashboard (admin + public `[angebot_impact]`) | ✅ |
 
 ### Shortcodes
 
@@ -53,6 +58,31 @@ Default city is **London**. Seeded UK cities include London, Manchester, Birming
 - `[angebot_categories]` — category bar
 - `[angebot_reviews]` — reviews (deal detail)
 - `[angebot_merchant_portal]` — redeem UI for merchants
+- `[angebot_eligibility_form]` — standalone eligibility submission form (also embedded automatically in My Account → Membership)
+- `[angebot_impact]` — public impact stats (auto-added to the "Our Impact" page created on activation)
+
+### Membership & eligibility workflow
+
+1. A visitor registers via the normal WooCommerce `/my-account/` form, now extended with full name, date of birth, phone, and address (required). Every new account starts as **unverified**.
+2. My Account gets two new tabs:
+   - **Membership** — shows status (unverified / pending / verified / rejected) and, unless verified, the eligibility form: benefit type, proof type, one uploaded document (PDF/JPG/PNG, 8MB max), and a required explicit-consent checkbox.
+   - **My Deals** — every voucher the member has bought, with live status (active/redeemed/expired) and its QR code, beyond WooCommerce's default order history.
+3. Submitting the form sets status to **pending**, emails the admin (a review link only — never the document itself) and a confirmation to the member.
+4. **Deals → Eligibility** (admin, capability `angebot_review_eligibility`, granted to Administrators only) lists pending/approved/rejected submissions. Approve or reject with an optional note; the member is emailed the decision automatically. Approving sets status to **verified**.
+5. Only **verified** members (or admins) can add a deal to the cart or complete checkout — enforced at add-to-cart, cart, and checkout, not just in the UI. Deal cards/detail pages show "Log in to buy", "Verify your eligibility", or "Verification pending" instead of the buy button until then.
+6. **Deals → Impact** (admin) and `[angebot_impact]` (public) show aggregate, privacy-safe totals: verified members, people helped, deals redeemed, and total savings provided.
+
+### GDPR & eligibility data (read before going live)
+
+Benefit type, disability-related proof, and the uploaded document are **special category / sensitive personal data** under UK GDPR (Art. 9). This plugin was built with that in mind, but **you are still responsible for compliance**:
+
+- **Not legal advice.** Complete a Data Protection Impact Assessment (DPIA) before collecting real submissions.
+- **Lawful basis**: explicit consent, captured (with a timestamp) when the member ticks the consent box and submits the form.
+- **Storage**: uploaded documents live in `wp-content/uploads/angebot-eligibility/`, a folder with a deny-all `.htaccess`/`index.php` (the same pattern WooCommerce uses for its own protected downloads) and randomised filenames — never linkable or listable directly.
+- **Access**: documents are only ever served through a capability-checked, nonced endpoint, viewable solely by the submitting member and admins with the `angebot_review_eligibility` capability. Never emailed or attached anywhere.
+- **Retention**: `Deals → Settings` lets you set how many days after a decision the document is auto-deleted (default 90). A minimal audit record (benefit type, decision, dates) is kept.
+- **Access/erasure requests**: both membership identity fields and eligibility submissions are wired into WordPress's built-in **Tools → Export/Erase Personal Data** so subject access and erasure requests are handled through the standard WP flow.
+- Update the auto-generated Privacy Policy page with your organisation's real details, and get it reviewed by a solicitor.
 
 ### Merchant workflow
 
@@ -76,6 +106,9 @@ Default city is **London**. Seeded UK cities include London, Manchester, Birming
 - [ ] First test purchase including voucher email and redemption
 - [ ] Brand name + logo finalized
 - [ ] Tax/VAT settings in WooCommerce
+- [ ] DPIA completed for eligibility verification; retention days + review notification email set in **Deals → Settings**
+- [ ] Test the full flow once: register → submit eligibility → approve as admin → buy a deal → redeem → check My Deals + Impact dashboard
+- [ ] After updating the plugin on an existing install, open **Settings → Permalinks** and save once if the new "Membership"/"My Deals" account tabs 404
 
 ## Project structure
 

@@ -54,6 +54,16 @@ final class Angebot_Deals_Admin
             'sanitize_callback' => 'sanitize_text_field',
             'default'           => 'Highbridge',
         ]);
+        register_setting('angebot_deals', 'angebot_eligibility_notify_email', [
+            'type'              => 'string',
+            'sanitize_callback' => 'sanitize_email',
+            'default'           => get_option('admin_email'),
+        ]);
+        register_setting('angebot_deals', 'angebot_eligibility_retention_days', [
+            'type'              => 'integer',
+            'sanitize_callback' => 'absint',
+            'default'           => 90,
+        ]);
     }
 
     public static function render_settings(): void
@@ -96,6 +106,34 @@ final class Angebot_Deals_Admin
             <hr>
             <h2><?php esc_html_e('Payments (Stripe / PayPal)', 'angebot-deals'); ?></h2>
             <p><?php esc_html_e('In WooCommerce → Settings → Payments, enable the “WooCommerce Stripe Gateway” and/or “WooCommerce PayPal Payments” plugins. Disable test mode there once live keys are set.', 'angebot-deals'); ?></p>
+            <hr>
+            <h2><?php esc_html_e('Eligibility verification (membership gate)', 'angebot-deals'); ?></h2>
+            <form method="post" action="options.php">
+                <?php settings_fields('angebot_deals'); ?>
+                <table class="form-table">
+                    <tr>
+                        <th><label for="angebot_eligibility_notify_email"><?php esc_html_e('Review notification email', 'angebot-deals'); ?></label></th>
+                        <td>
+                            <input type="email" class="regular-text" id="angebot_eligibility_notify_email" name="angebot_eligibility_notify_email" value="<?php echo esc_attr((string) get_option('angebot_eligibility_notify_email', get_option('admin_email'))); ?>">
+                            <p class="description"><?php esc_html_e('Sent (without the attached document) whenever a member submits proof of entitlement for review.', 'angebot-deals'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="angebot_eligibility_retention_days"><?php esc_html_e('Document retention (days after decision)', 'angebot-deals'); ?></label></th>
+                        <td>
+                            <input type="number" min="1" class="small-text" id="angebot_eligibility_retention_days" name="angebot_eligibility_retention_days" value="<?php echo esc_attr((string) get_option('angebot_eligibility_retention_days', 90)); ?>">
+                            <p class="description"><?php esc_html_e('Uploaded proof documents are automatically deleted this many days after being approved or rejected. The decision itself (for audit) is kept.', 'angebot-deals'); ?></p>
+                        </td>
+                    </tr>
+                </table>
+                <?php submit_button(__('Save eligibility settings', 'angebot-deals')); ?>
+            </form>
+            <div class="notice notice-warning inline" style="padding:12px 16px">
+                <p>
+                    <strong><?php esc_html_e('Before you collect real submissions:', 'angebot-deals'); ?></strong>
+                    <?php esc_html_e('benefit type, disability-related proof, and identity documents are special category / sensitive personal data under UK GDPR (Art. 9). Complete a Data Protection Impact Assessment, confirm your lawful basis (explicit consent is captured on submission), keep hosting/backups secure, and update your Privacy Policy before going live. This is not legal advice.', 'angebot-deals'); ?>
+                </p>
+            </div>
         </div>
         <?php
     }

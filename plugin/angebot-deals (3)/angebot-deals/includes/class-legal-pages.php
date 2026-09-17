@@ -146,11 +146,23 @@ HTML;
 <!-- wp:paragraph -->
 <p>Legal basis: Art. 6(1)(b) GDPR (contract) and Art. 6(1)(f) GDPR (legitimate interest in IT security), or equivalent applicable law.</p>
 <!-- /wp:paragraph -->
+<!-- wp:heading {"level":3} -->
+<h3>Membership eligibility verification</h3>
+<!-- /wp:heading -->
 <!-- wp:paragraph -->
-<p>You have rights of access, rectification, erasure, restriction, and data portability, as well as the right to lodge a complaint with a supervisory authority.</p>
+<p>Membership on this site is restricted to UK benefit recipients. To verify this we ask you to tell us which benefit or qualifying support you receive and to upload a supporting document (for example a benefit entitlement letter or award letter).</p>
 <!-- /wp:paragraph -->
 <!-- wp:paragraph -->
-<p><em>Add hosting, cookies, analytics, and payment providers (Stripe/PayPal) before going live.</em></p>
+<p>This information can reveal disability status, health-related circumstances, or financial/welfare status, which is <strong>special category data</strong> under Article 9 UK GDPR. We only process it with your <strong>explicit consent</strong>, given when you submit the verification form (Art. 9(2)(a) UK GDPR), for the sole purpose of deciding whether to grant you membership. It is reviewed manually by an authorised member of our team (or, in future, a partner organisation acting on our behalf under a data processing agreement) and is never used for marketing or shared with merchants.</p>
+<!-- /wp:paragraph -->
+<!-- wp:paragraph -->
+<p>Uploaded documents are stored in a restricted location that is not publicly accessible and are automatically deleted a limited number of days after a decision is made; a minimal record of the decision (benefit category, outcome, dates) is kept for audit purposes. You can withdraw consent, and request access to, correction of, or erasure of this data, at any time by contacting us.</p>
+<!-- /wp:paragraph -->
+<!-- wp:paragraph -->
+<p>You have rights of access, rectification, erasure, restriction, and data portability, as well as the right to lodge a complaint with a supervisory authority (in the UK, the Information Commissioner's Office).</p>
+<!-- /wp:paragraph -->
+<!-- wp:paragraph -->
+<p><em>Add hosting, cookies, analytics, and payment providers (Stripe/PayPal) before going live. Before collecting real eligibility submissions, complete a Data Protection Impact Assessment (DPIA) covering the special category data above — this template does not replace one.</em></p>
 <!-- /wp:paragraph -->
 HTML;
     }

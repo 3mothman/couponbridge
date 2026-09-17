@@ -45,13 +45,14 @@ $count      = Angebot_Deals_Reviews::count($deal_id);
                 <?php esc_html_e('Expires in', 'angebot-deals'); ?> <span class="angebot-countdown__time">—</span>
             </p>
         <?php endif; ?>
+        <?php $cta = Angebot_Deals_Membership::cta_for_deal($deal_id, $product_id, $remaining); ?>
         <div class="angebot-deal-card__actions">
-            <?php if ($remaining > 0 && $product_id) : ?>
-                <a class="angebot-btn angebot-btn--primary" href="<?php echo esc_url(wc_get_cart_url() . '?add-to-cart=' . $product_id); ?>">
-                    <?php esc_html_e('Buy', 'angebot-deals'); ?>
-                </a>
+            <?php if ($cta['disabled']) : ?>
+                <span class="angebot-btn angebot-btn--disabled"><?php echo esc_html($cta['label']); ?></span>
             <?php else : ?>
-                <span class="angebot-btn angebot-btn--disabled"><?php esc_html_e('Sold out', 'angebot-deals'); ?></span>
+                <a class="angebot-btn angebot-btn--primary" href="<?php echo esc_url($cta['url']); ?>">
+                    <?php echo esc_html($cta['label']); ?>
+                </a>
             <?php endif; ?>
             <a class="angebot-btn angebot-btn--ghost" href="<?php echo esc_url($permalink); ?>"><?php esc_html_e('Details', 'angebot-deals'); ?></a>
         </div>
