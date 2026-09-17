@@ -597,6 +597,19 @@
   font-weight: 700;
 }
 
+.angebot-reg-account-type {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.angebot-reg-account-type label {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  font-weight: 400;
+}
+
 .angebot-deal-status--publish { background: #EAF4F2; color: #205951; }
 .angebot-deal-status--pending { background: #fff4e0; color: #92610a; }
 .angebot-deal-status--draft   { background: #eef2f6; color: #4b5563; }

@@ -163,13 +163,27 @@ final class Angebot_Deals_Membership
 
     public static function render_registration_fields(): void
     {
-        $full_name = isset($_POST['angebot_reg_full_name']) ? sanitize_text_field(wp_unslash($_POST['angebot_reg_full_name'])) : '';
-        $dob       = isset($_POST['angebot_reg_dob']) ? sanitize_text_field(wp_unslash($_POST['angebot_reg_dob'])) : '';
-        $phone     = isset($_POST['angebot_reg_phone']) ? sanitize_text_field(wp_unslash($_POST['angebot_reg_phone'])) : '';
-        $address1  = isset($_POST['angebot_reg_address_1']) ? sanitize_text_field(wp_unslash($_POST['angebot_reg_address_1'])) : '';
-        $city      = isset($_POST['angebot_reg_city']) ? sanitize_text_field(wp_unslash($_POST['angebot_reg_city'])) : '';
-        $postcode  = isset($_POST['angebot_reg_postcode']) ? sanitize_text_field(wp_unslash($_POST['angebot_reg_postcode'])) : '';
+        $full_name    = isset($_POST['angebot_reg_full_name']) ? sanitize_text_field(wp_unslash($_POST['angebot_reg_full_name'])) : '';
+        $dob          = isset($_POST['angebot_reg_dob']) ? sanitize_text_field(wp_unslash($_POST['angebot_reg_dob'])) : '';
+        $phone        = isset($_POST['angebot_reg_phone']) ? sanitize_text_field(wp_unslash($_POST['angebot_reg_phone'])) : '';
+        $address1     = isset($_POST['angebot_reg_address_1']) ? sanitize_text_field(wp_unslash($_POST['angebot_reg_address_1'])) : '';
+        $city         = isset($_POST['angebot_reg_city']) ? sanitize_text_field(wp_unslash($_POST['angebot_reg_city'])) : '';
+        $postcode     = isset($_POST['angebot_reg_postcode']) ? sanitize_text_field(wp_unslash($_POST['angebot_reg_postcode'])) : '';
+        $account_type = self::sanitize_account_type($_POST['angebot_account_type'] ?? '');
         ?>
+        <fieldset class="angebot-reg-fields angebot-reg-fields__type">
+            <legend><?php esc_html_e('How will you use Highbridge?', 'angebot-deals'); ?></legend>
+            <p class="form-row form-row-wide angebot-reg-account-type">
+                <label>
+                    <input type="radio" name="angebot_account_type" value="customer" <?php checked($account_type, 'customer'); ?>>
+                    <?php esc_html_e("I'm looking for deals", 'angebot-deals'); ?>
+                </label>
+                <label>
+                    <input type="radio" name="angebot_account_type" value="merchant" <?php checked($account_type, 'merchant'); ?>>
+                    <?php esc_html_e('I run a local business and want to list deals', 'angebot-deals'); ?>
+                </label>
+            </p>
+        </fieldset>
         <fieldset class="angebot-reg-fields">
             <legend><?php esc_html_e('Your details', 'angebot-deals'); ?></legend>
             <p class="form-row form-row-wide">
@@ -196,9 +210,22 @@ final class Angebot_Deals_Membership
                 <label for="angebot_reg_postcode"><?php esc_html_e('Postcode', 'angebot-deals'); ?>&nbsp;<span class="required">*</span></label>
                 <input type="text" class="woocommerce-Input woocommerce-Input--text input-text" name="angebot_reg_postcode" id="angebot_reg_postcode" value="<?php echo esc_attr($postcode); ?>" required>
             </p>
-            <p class="angebot-reg-note"><?php esc_html_e('We ask for these details because Highbridge membership is restricted to UK benefit recipients. After registering you will be asked to verify your eligibility.', 'angebot-deals'); ?></p>
+            <?php if ($account_type === 'merchant') : ?>
+                <p class="angebot-reg-note"><?php esc_html_e('We use these details for your merchant profile and to contact you about deals. After registering you can submit your first deal straight away from Account → Membership.', 'angebot-deals'); ?></p>
+            <?php else : ?>
+                <p class="angebot-reg-note"><?php esc_html_e('We ask for these details because Highbridge membership is restricted to UK benefit recipients. After registering you will be asked to verify your eligibility.', 'angebot-deals'); ?></p>
+            <?php endif; ?>
         </fieldset>
         <?php
+    }
+
+    /**
+     * @param mixed $raw
+     */
+    private static function sanitize_account_type($raw): string
+    {
+        $value = sanitize_key((string) $raw);
+        return $value === 'merchant' ? 'merchant' : 'customer';
     }
 
     public static function validate_registration($errors, string $username, string $email)
@@ -275,6 +302,15 @@ final class Angebot_Deals_Membership
         update_user_meta($customer_id, '_angebot_full_name', sanitize_text_field($full_name));
 
         self::set_status($customer_id, self::STATUS_UNVERIFIED);
+
+        $account_type = self::sanitize_account_type($_POST['angebot_account_type'] ?? '');
+        if ($account_type === 'merchant') {
+            // add_role() (not set_role()) keeps WooCommerce's default
+            // "customer" role alongside it, so a merchant can still buy
+            // deals for themselves like anyone else if they choose to.
+            $user = new WP_User($customer_id);
+            $user->add_role(Angebot_Deals_Merchant_Role::ROLE);
+        }
     }
 
     /* ---------------------------------------------------------------
