@@ -7,6 +7,8 @@ if (!defined('ABSPATH')) {
 
 final class Angebot_Deals_Merchant_Portal
 {
+    public const ENDPOINT = 'merchant-portal';
+
     public static function register_hooks(): void
     {
         add_action('admin_menu', [self::class, 'admin_menu']);
@@ -16,6 +18,49 @@ final class Angebot_Deals_Merchant_Portal
 
         add_action('admin_post_angebot_submit_deal', [self::class, 'handle_submit_deal']);
         add_action('admin_post_nopriv_angebot_submit_deal', [self::class, 'handle_submit_deal']);
+
+        // My Account: a "Merchant Portal" tab, so a newly self-registered
+        // business finds "submit a deal" right in their account menu —
+        // instead of needing an admin to first create a page somewhere and
+        // add the [angebot_merchant_portal] shortcode to it by hand.
+        add_action('init', [self::class, 'add_endpoint']);
+        add_filter('woocommerce_account_menu_items', [self::class, 'account_menu_items'], 22);
+        add_action('woocommerce_account_' . self::ENDPOINT . '_endpoint', [self::class, 'account_endpoint_content']);
+        add_filter('woocommerce_endpoint_' . self::ENDPOINT . '_title', [self::class, 'account_endpoint_title']);
+    }
+
+    public static function add_endpoint(): void
+    {
+        add_rewrite_endpoint(self::ENDPOINT, EP_ROOT | EP_PAGES);
+    }
+
+    public static function account_menu_items(array $items): array
+    {
+        if (!current_user_can('angebot_redeem_voucher') && !current_user_can('angebot_submit_deal')) {
+            return $items;
+        }
+
+        $insert = [self::ENDPOINT => __('Merchant Portal', 'angebot-deals')];
+        $after  = array_key_exists('my-deals', $items) ? 'my-deals' : 'orders';
+        $pos    = array_search($after, array_keys($items), true);
+
+        if ($pos === false) {
+            return $insert + $items;
+        }
+
+        return array_slice($items, 0, $pos + 1, true)
+            + $insert
+            + array_slice($items, $pos + 1, null, true);
+    }
+
+    public static function account_endpoint_title(string $title): string
+    {
+        return __('Merchant Portal', 'angebot-deals');
+    }
+
+    public static function account_endpoint_content(): void
+    {
+        echo self::shortcode();
     }
 
     public static function admin_menu(): void
