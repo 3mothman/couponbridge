@@ -87,7 +87,7 @@ Benefit type, disability-related proof, and the uploaded document are **special 
 ### Merchant workflow
 
 1. A business gets the **Merchant** role either by choosing "I run a local business and want to list deals" on the normal registration form, or by an admin assigning the Merchant role in **Users** later.
-2. On the page using `[angebot_merchant_portal]` (or `page-templates/merchant-portal.php`), a merchant can now:
+2. As soon as they log in, **My Account → Merchant Portal** appears automatically (no admin setup, page, or shortcode needed — it's a My Account tab, just like Membership and My Deals). There, a merchant can:
    - **Submit a new deal** — title, category, city, prices, quota, description, optional photo. It's saved as `pending`; the admin is emailed and publishes it from wp-admin like any other post. (Submitting while logged in as an admin publishes immediately, for quick testing.)
    - See **Your deals** with live status (Live / Pending review / Draft).
    - **Check & redeem** a customer's voucher code/QR, as before.
