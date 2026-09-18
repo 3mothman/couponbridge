@@ -3,7 +3,7 @@
  * Plugin Name:       Angebot Deals
  * Plugin URI:        https://angebot.local
  * Description:       Deals platform with WooCommerce checkout, vouchers, merchant portal, and QR redemption.
- * Version:           1.2.0
+ * Version:           1.3.0
  * Requires at least: 6.4
  * Requires PHP:      8.0
  * Author:            Angebot
@@ -19,7 +19,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('ANGEBOT_DEALS_VERSION', '1.2.0');
+define('ANGEBOT_DEALS_VERSION', '1.3.0');
 define('ANGEBOT_DEALS_FILE', __FILE__);
 define('ANGEBOT_DEALS_PATH', plugin_dir_path(__FILE__));
 define('ANGEBOT_DEALS_URL', plugin_dir_url(__FILE__));

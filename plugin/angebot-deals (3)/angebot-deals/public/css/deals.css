@@ -597,6 +597,34 @@
   font-weight: 700;
 }
 
+/* Split login/register: hide the register column on the WooCommerce
+   My Account page (login only there) and point people to /register/
+   instead — see Angebot_Deals_Membership::print_register_link(). */
+.woocommerce-account #customer_login .col-2 {
+  display: none;
+}
+
+.woocommerce-account #customer_login .col-1 {
+  width: 100%;
+  float: none;
+}
+
+.angebot-auth-switch {
+  margin-top: 1rem;
+  font-size: .9rem;
+}
+
+.angebot-auth-page {
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.angebot-auth-page .woocommerce-form-register,
+.angebot-auth-page .woocommerce-form-login {
+  display: grid;
+  gap: .75rem;
+}
+
 .angebot-reg-account-type {
   display: flex;
   gap: 1.5rem;
