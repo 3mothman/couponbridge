@@ -56,6 +56,7 @@ final class Angebot_Deals_Plugin
         Angebot_Deals_Activator::create_eligibility_table();
         Angebot_Deals_Eligibility::grant_admin_capability();
         Angebot_Deals_Impact::maybe_create_page();
+        Angebot_Deals_Membership::maybe_create_register_page();
         // New rewrite endpoints (membership, my-deals) were just registered
         // above via register_hooks() -> add_endpoint(); flush so they work
         // immediately instead of 404ing until someone re-saves Permalinks.

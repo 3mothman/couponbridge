@@ -43,7 +43,7 @@ Default city is **London**. Seeded UK cities include London, Manchester, Birming
 | Reviews with moderation | ✅ |
 | Legal pages (English templates) | ✅ |
 | Demo deals | ✅ |
-| Extended registration (name, DOB, phone, address) | ✅ |
+| Extended registration (name, DOB, phone, address) on its own `/register/` page | ✅ |
 | Eligibility verification (benefit + proof document, manual review) | ✅ |
 | Digital membership status gate (pending/verified/rejected) on checkout | ✅ |
 | "My Deals" redemption history (My Account tab) | ✅ |

@@ -19,12 +19,25 @@ final class Angebot_Deals_Membership
 
     public const ENDPOINT = 'membership';
 
+    public const REGISTER_PAGE_SLUG = 'register';
+
     public static function register_hooks(): void
     {
         // Registration form: extra identity fields.
         add_action('woocommerce_register_form', [self::class, 'render_registration_fields']);
         add_filter('woocommerce_registration_errors', [self::class, 'validate_registration'], 10, 3);
         add_action('woocommerce_created_customer', [self::class, 'save_registration_fields']);
+
+        // Login and registration as two separate pages instead of the
+        // WooCommerce default of showing both forms side by side on
+        // /my-account/: a dedicated "Register" page carries only the
+        // registration form (processed by WooCommerce's own form handler
+        // exactly like the built-in one), and /my-account/'s login form
+        // gets a "Create an account" link pointing to it, with the
+        // register column hidden there.
+        add_shortcode('angebot_register_form', [self::class, 'shortcode_register_form']);
+        add_action('template_redirect', [self::class, 'redirect_if_logged_in_on_register']);
+        add_action('woocommerce_login_form_end', [self::class, 'print_register_link']);
 
         // My Account: "Membership" tab.
         add_action('init', [self::class, 'add_endpoint']);
@@ -44,6 +57,69 @@ final class Angebot_Deals_Membership
     public static function add_endpoint(): void
     {
         add_rewrite_endpoint(self::ENDPOINT, EP_ROOT | EP_PAGES);
+    }
+
+    /* ---------------------------------------------------------------
+     * Separate Register page
+     * ------------------------------------------------------------- */
+
+    public static function register_page_url(): string
+    {
+        $page = get_page_by_path(self::REGISTER_PAGE_SLUG);
+        if ($page) {
+            return get_permalink($page);
+        }
+        return function_exists('wc_get_page_permalink') ? wc_get_page_permalink('myaccount') : home_url('/');
+    }
+
+    public static function maybe_create_register_page(): void
+    {
+        if (get_page_by_path(self::REGISTER_PAGE_SLUG)) {
+            return;
+        }
+
+        wp_insert_post([
+            'post_title'   => __('Register', 'angebot-deals'),
+            'post_name'    => self::REGISTER_PAGE_SLUG,
+            'post_content' => '<!-- wp:shortcode -->[angebot_register_form]<!-- /wp:shortcode -->',
+            'post_status'  => 'publish',
+            'post_type'    => 'page',
+        ]);
+    }
+
+    public static function redirect_if_logged_in_on_register(): void
+    {
+        if (!is_user_logged_in() || !is_page(self::REGISTER_PAGE_SLUG)) {
+            return;
+        }
+        wp_safe_redirect(function_exists('wc_get_page_permalink') ? wc_get_page_permalink('myaccount') : home_url('/'));
+        exit;
+    }
+
+    public static function print_register_link(): void
+    {
+        printf(
+            '<p class="angebot-auth-switch">%s <a href="%s">%s</a></p>',
+            esc_html__("Don't have an account yet?", 'angebot-deals'),
+            esc_url(self::register_page_url()),
+            esc_html__('Register', 'angebot-deals')
+        );
+    }
+
+    public static function shortcode_register_form(): string
+    {
+        if (is_user_logged_in()) {
+            $url = function_exists('wc_get_page_permalink') ? wc_get_page_permalink('myaccount') : home_url('/');
+            return '<p>' . sprintf(
+                /* translators: %s: my account URL */
+                esc_html__('You are already logged in. Go to your %s.', 'angebot-deals'),
+                '<a href="' . esc_url($url) . '">' . esc_html__('account', 'angebot-deals') . '</a>'
+            ) . '</p>';
+        }
+
+        ob_start();
+        include ANGEBOT_DEALS_PATH . 'templates/register-form.php';
+        return (string) ob_get_clean();
     }
 
     public static function account_menu_items(array $items): array
