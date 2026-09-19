@@ -55,7 +55,11 @@ final class Angebot_Deals_Deal_CPT
             ],
             'public'            => true,
             'hierarchical'      => true,
-            'rewrite'           => ['slug' => 'category'],
+            // NOT 'category' — that's WordPress core's own built-in
+            // taxonomy slug (used for blog posts) and colliding with it
+            // makes WordPress unable to tell the two apart, so a deal
+            // category archive silently 404s / shows "Nothing found".
+            'rewrite'           => ['slug' => 'deal-category'],
             'show_admin_column' => true,
             'show_in_rest'      => true,
         ]);
