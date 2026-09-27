@@ -1,0 +1,102 @@
+<svg viewBox="0 0 900 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Domain class diagram: User, Deal, Order, Voucher, EligibilitySubmission and Review, with their attributes and relationships">
+  <style>
+    text{ font-family:"DM Sans", Arial, sans-serif; fill:#15202b; }
+    .cname{ font-weight:700; font-size:12px; text-anchor:middle; }
+    .attr{ font-size:9.5px; fill:#334; }
+    .cbox{ fill:#ffffff; stroke:#17293F; stroke-width:1.4; }
+    .chead{ fill:#17293F; }
+    .rel{ stroke:#5b6773; stroke-width:1; fill:none; }
+    .mult{ font-size:9px; fill:#3F7A72; font-weight:600; }
+    .rlabel{ font-size:9.5px; fill:#5b6773; font-style:italic; }
+  </style>
+
+  <!-- User -->
+  <g>
+    <rect class="cbox" x="40" y="30" width="180" height="92"/>
+    <rect class="chead" x="40" y="30" width="180" height="24"/>
+    <text class="cname" x="130" y="47" style="fill:#fff">User</text>
+    <text class="attr" x="52" y="70">email</text>
+    <text class="attr" x="52" y="84">role: Customer | Merchant | Admin</text>
+    <text class="attr" x="52" y="98">membershipStatus</text>
+  </g>
+
+  <!-- Deal -->
+  <g>
+    <rect class="cbox" x="360" y="30" width="190" height="104"/>
+    <rect class="chead" x="360" y="30" width="190" height="24"/>
+    <text class="cname" x="455" y="47" style="fill:#fff">Deal</text>
+    <text class="attr" x="372" y="70">title, description</text>
+    <text class="attr" x="372" y="84">originalPrice, dealPrice</text>
+    <text class="attr" x="372" y="98">quantity, soldCount</text>
+    <text class="attr" x="372" y="112">status: pending | publish</text>
+  </g>
+
+  <!-- Order -->
+  <g>
+    <rect class="cbox" x="680" y="30" width="180" height="80"/>
+    <rect class="chead" x="680" y="30" width="180" height="24"/>
+    <text class="cname" x="770" y="47" style="fill:#fff">Order (WooCommerce)</text>
+    <text class="attr" x="692" y="70">dateCreated</text>
+    <text class="attr" x="692" y="84">status</text>
+  </g>
+
+  <!-- EligibilitySubmission -->
+  <g>
+    <rect class="cbox" x="40" y="230" width="210" height="94"/>
+    <rect class="chead" x="40" y="230" width="210" height="24"/>
+    <text class="cname" x="145" y="247" style="fill:#fff">EligibilitySubmission</text>
+    <text class="attr" x="52" y="270">benefitType, proofType</text>
+    <text class="attr" x="52" y="284">documentPath (protected)</text>
+    <text class="attr" x="52" y="298">status: pending | verified | rejected</text>
+  </g>
+
+  <!-- Voucher -->
+  <g>
+    <rect class="cbox" x="360" y="230" width="190" height="94"/>
+    <rect class="chead" x="360" y="230" width="190" height="24"/>
+    <text class="cname" x="455" y="247" style="fill:#fff">Voucher</text>
+    <text class="attr" x="372" y="270">code, qrToken</text>
+    <text class="attr" x="372" y="284">status: active | redeemed | expired</text>
+    <text class="attr" x="372" y="298">expiresAt, redeemedAt</text>
+  </g>
+
+  <!-- Review -->
+  <g>
+    <rect class="cbox" x="680" y="230" width="180" height="80"/>
+    <rect class="chead" x="680" y="230" width="180" height="24"/>
+    <text class="cname" x="770" y="247" style="fill:#fff">Review</text>
+    <text class="attr" x="692" y="270">rating, content</text>
+    <text class="attr" x="692" y="284">status: pending | approved</text>
+  </g>
+
+  <!-- relationships -->
+  <line class="rel" x1="130" y1="122" x2="145" y2="230"/>
+  <text class="mult" x="105" y="145">1</text><text class="mult" x="150" y="222">0..*</text>
+  <text class="rlabel" x="95" y="185">submits</text>
+
+  <path class="rel" d="M220,76 L360,76"/>
+  <text class="mult" x="230" y="70">1</text><text class="mult" x="345" y="70">0..*</text>
+  <text class="rlabel" x="250" y="66">writes</text>
+
+  <line class="rel" x1="550" y1="90" x2="680" y2="284"/>
+  <text class="rlabel" x="570" y="180">has</text>
+
+  <path class="rel" d="M220,90 L360,270"/>
+  <text class="mult" x="230" y="110">1</text><text class="mult" x="345" y="262">0..*</text>
+  <text class="rlabel" x="255" y="180">places → generates</text>
+
+  <path class="rel" d="M550,50 L680,50"/>
+  <text class="rlabel" x="560" y="44">syncs to hidden product</text>
+
+  <path class="rel" d="M550,277 L680,277"/>
+  <text class="mult" x="560" y="270">1</text><text class="mult" x="665" y="270">0..*</text>
+  <text class="rlabel" x="575" y="264">redeemed by</text>
+
+  <path class="rel" d="M455,134 L455,230"/>
+  <text class="mult" x="465" y="150">1</text><text class="mult" x="465" y="220">0..*</text>
+  <text class="rlabel" x="465" y="185">sold as</text>
+
+  <path class="rel" d="M770,110 L770,230"/>
+  <text class="mult" x="780" y="130">1</text><text class="mult" x="780" y="220">0..*</text>
+  <text class="rlabel" x="782" y="175">creates</text>
+</svg>
