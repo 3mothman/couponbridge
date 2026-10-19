@@ -1,225 +1,201 @@
 # Highbridge — Software Architecture
 
-A WordPress + WooCommerce deals marketplace restricted to UK benefit recipients, with eligibility verification, a merchant self-service portal, and voucher redemption. This documents what exists today, how the pieces connect, and how a code change actually reaches the live site.
+This document describes the implementation in the repository's `main` branch. It uses small context, container, and component views, followed by short process diagrams. The diagrams describe the code; they do not claim that the website is currently deployed or that every flow has been tested in production.
 
-Repo: `3mothman/angebote-web` · Plugin: `angebot-deals` (v1.4.1) · Theme: `angebot` · Host: Hostinger
+## 1. System purpose and scope
 
-1. [System context](#1-system-context)
-2. [Code → live site](#2-code--live-site-the-step-that-keeps-tripping-this-up)
-3. [Plugin modules](#3-plugin-modules)
-4. [Data model](#4-data-model)
-5. [Roles & access](#5-roles--access)
-6. [Key flows](#6-key-flows)
-7. [Operational notes](#7-operational-notes)
+Highbridge is a local-deals marketplace implemented as a WordPress site. WooCommerce handles cart, checkout, orders, and products. The `angebot-deals` plugin provides deal listings, membership eligibility, merchant tools, vouchers, and reviews. The `angebot` theme renders the public pages.
 
-## 1. System context
+The implementation is internally inconsistent about its intended market. Eligibility text and legal templates target UK benefit recipients, while the location seeder still creates German cities and defaults to Berlin. See [Known inconsistencies](#8-known-inconsistencies-and-follow-up) before presenting this as a finished UK marketplace.
 
-Everything runs inside one WordPress install. The theme handles layout; the plugin holds all Highbridge-specific business logic. Two external services are called over HTTP: an SMTP provider for outgoing mail, and a QR-code image API.
-
-```mermaid
-flowchart TB
-    Cust["Customer\n(benefit recipient)"]
-    Merch["Merchant\n(local business)"]
-    Admin["Admin"]
-
-    subgraph Host["Hostinger — lavenderblush-bat-933834.hostingersite.com"]
-      direction TB
-      subgraph WP["WordPress + WooCommerce"]
-        Theme["Theme: angebot\nheader / footer / page templates"]
-        Plugin["Plugin: angebot-deals\nall custom business logic"]
-      end
-      DB[(MySQL)]
-      Cache["LiteSpeed Cache"]
-    end
-
-    SMTP["SMTP provider\n(wp_mail)"]
-    QR["api.qrserver.com\nQR code images"]
-
-    Cust -->|browse, register, buy, redeem| Cache
-    Merch -->|submit deals, redeem vouchers| Cache
-    Admin -->|wp-admin: manage, review| WP
-    Cache --> WP
-    Theme <--> Plugin
-    Plugin --> DB
-    Plugin -.wp_mail.-> SMTP
-    Plugin -.image src.-> QR
-```
-
-The plugin is the brain; the theme is the face. Both read/write the same WordPress database — there is no separate backend service.
-
-## 2. Code → live site (the step that keeps tripping this up)
-
-This is the single most important thing to understand about this project's workflow: **merging a pull request on GitHub changes nothing on the live site.** There is no CI/CD pipeline. GitHub and Hostinger are two disconnected places, joined only by a manual file copy.
+## 2. System context (C4 Level 1)
 
 ```mermaid
 flowchart LR
-    A["Claude Code session\nedits plugin/theme files"] -->|git commit + push| B["GitHub\nbranch → PR → main"]
-    A -->|zip export| C["angebot-deals.zip\nangebot-theme.zip"]
-    C -->|"manual upload\n(File Manager / FTP)"| D["wp-content/plugins/angebot-deals\nwp-content/themes/angebot"]
-    D -->|"Settings → Permalinks → Save"| E["Live site\nrewrite rules refreshed"]
-    E -->|"LiteSpeed Cache → Purge All"| F["What visitors actually see"]
-    B -.no automatic link.-x D
+    Customer["Customer\nBrowses deals, registers, verifies eligibility, buys, and uses vouchers"]
+    Merchant["Merchant\nSubmits deals and redeems vouchers for their own deals"]
+    Admin["Administrator\nReviews submissions, manages deals, and operates the site"]
+    Site["Highbridge WordPress site\nangebot theme + angebot-deals plugin + WooCommerce"]
+    Mail["WordPress mail transport\nwp_mail; delivery provider depends on site configuration"]
+    QR["QR image service\napi.qrserver.com"]
+
+    Customer -->|Web pages and account actions| Site
+    Merchant -->|Merchant portal and redemption| Site
+    Admin -->|WordPress administration| Site
+    Site -->|Notification email| Mail
+    Site -->|QR image URL contains voucher URL| QR
 ```
 
-The dotted crossed-out line is the trap: a merged PR (top path) never reaches the bottom path by itself. Every release needs the manual zip → upload → Permalinks → cache-purge sequence.
+The WordPress site is the system boundary. There is no separate application backend in the repository. WordPress and WooCommerce provide the runtime, user accounts, content, commerce APIs, and persistence used by the custom code.
 
-> **Why "it still doesn't work" after a merge.** Nearly every "the fix isn't showing up" issue in this project traced back to one of: the files were never re-uploaded to Hostinger, Permalinks weren't re-saved after uploading (new URLs 404), or LiteSpeed Cache served a stale/cached page from before the fix existed. Check these three, in this order, before assuming the code is wrong.
-
-## 3. Plugin modules
-
-`angebot-deals` is plain-PHP OOP (PHP 8, no framework). Every class is a static-method "service" registered once from `Angebot_Deals_Plugin::init()` and wired entirely through WordPress hooks — there is no central router or dependency container.
-
-**Bootstrap**
-
-| Module | File | Responsibility |
-|---|---|---|
-| Plugin | `class-plugin.php` | Singleton entry point. Registers every module's hooks; runs version-gated upgrades (new DB tables, capability grants, rewrite flush). |
-| Activator / Deactivator | `class-activator.php` | Runs once on plugin activation: creates custom tables, seeds roles, creates auto-generated pages. |
-| Autoloader | `class-autoloader.php` | Explicit class-name → file map, no Composer. |
-
-**Catalogue**
-
-| Module | File | Responsibility |
-|---|---|---|
-| Deal_CPT | `class-deal-cpt.php` | Registers the `deal` post type and its two taxonomies, `deal_category` and `deal_location`. |
-| Deal_Meta | `class-deal-meta.php` | Price, quota, merchant, expiry etc. as post meta; renders/saves the wp-admin meta box. |
-| WooCommerce_Sync | `class-woocommerce-sync.php` | Mirrors every deal into a hidden `WC_Product_Simple` so checkout, stock and pricing all run through WooCommerce untouched. |
-
-**Membership & eligibility**
-
-| Module | File | Responsibility |
-|---|---|---|
-| Membership | `class-membership.php` | Extra registration fields, the `/register/` page, the purchase gate (verified members only), My Account "Membership" tab. |
-| Eligibility | `class-eligibility.php` | Benefit/proof submission, protected document storage, admin review queue, retention cleanup, privacy export/erase. |
-| Impact | `class-impact.php` | Aggregates verified members, redemptions and savings for the admin dashboard and the public `[angebot_impact]` shortcode. |
-
-**Commerce & redemption**
-
-| Module | File | Responsibility |
-|---|---|---|
-| Voucher | `class-voucher.php` | Custom `wp_angebot_vouchers` table; generates a code + QR token per order line, tracks status, powers "My Deals". |
-| Voucher_Email | `class-voucher-email.php` | HTML email with the code and QR image, sent on order completion. |
-| QR_Code | `class-qr-code.php` | Builds the `/voucher/{token}/` redeem URL and the QR image src. |
-
-**Merchant**
-
-| Module | File | Responsibility |
-|---|---|---|
-| Merchant_Role | `class-merchant-role.php` | The `angebot_merchant` role and capabilities; restricts a merchant's wp-admin view and post ownership. |
-| Merchant_Portal | `class-merchant-portal.php` | My Account "Merchant Portal" tab: submit a deal, see your deals, redeem a customer's voucher. |
-
-**Front-end & content**
-
-| Module | File | Responsibility |
-|---|---|---|
-| Shortcodes | `class-shortcodes.php` | Deal grid, filters, location picker, category bar. |
-| Ajax_Filters / Location | `class-ajax-filters.php`, `class-location.php` | Live filtering and the city-cookie used to scope the catalogue. |
-| Reviews / Legal_Pages / Demo_Content | `class-reviews.php` etc. | Moderated reviews, auto-created legal pages, one-click demo deals. |
-
-## 4. Data model
-
-No custom database abstraction — everything sits on WordPress's own tables plus three plugin-owned ones.
-
-| Store | What it holds | Key fields |
-|---|---|---|
-| `deal` (CPT) | One row per deal listing | title, content, `post_status` (publish/pending), `post_author` |
-| Deal post meta | Commerce details per deal | `_angebot_original_price`, `_angebot_deal_price`, `_angebot_quantity`, `_angebot_sold_count`, `_angebot_merchant_user_id` |
-| `deal_category` / `deal_location` | Taxonomies on `deal` | hierarchical terms; rewrite slugs `deal-category` / `city` |
-| WC product (hidden) | One per published deal, catalogue-hidden | mirrors price/stock; the thing that actually gets purchased |
-| `wp_angebot_vouchers` | One row per unit purchased | code, qr_token, status, `user_id`, `merchant_user_id`, expires_at |
-| `wp_angebot_eligibility` | One row per verification attempt | benefit_type, proof_type, file_path (protected dir), status, reviewed_by |
-| `wp_angebot_reviews` | One row per deal review | rating, content, status (pending/approved) |
-| User meta | Identity & membership state | `_angebot_membership_status`, `_angebot_date_of_birth`, billing_* fields, WP role(s) |
-
-## 5. Roles & access
-
-A user can be Customer and Merchant at once — the roles stack. Membership status (verified / pending / rejected) is a separate axis from role: it only gates checkout.
-
-| | Customer | Merchant | Administrator |
-|---|---|---|---|
-| Browse deals | yes | yes | yes |
-| Buy a deal | only if **verified** | only if **verified** | always |
-| Submit eligibility proof | yes | yes | — |
-| My Account → Membership / My Deals | yes | yes | yes |
-| My Account → Merchant Portal | no | yes | yes |
-| Submit a new deal | no | yes → goes to *pending* | yes → publishes immediately |
-| Redeem a voucher | no | own deals only | any |
-| Review eligibility submissions | no | no | yes |
-| wp-admin dashboard | no menu access | Deals + Vouchers only | full |
-
-## 6. Key flows
-
-### Customer: register → verify → buy → redeem
+## 3. Containers (C4 Level 2)
 
 ```mermaid
-sequenceDiagram
-    participant U as Visitor
-    participant Reg as /register/
-    participant Mem as Membership
-    participant Elig as Eligibility
-    participant Adm as Admin
-    participant WC as WooCommerce
-    participant Vou as Voucher
+flowchart TB
+    Browser["User's browser"]
+    subgraph WordPress["WordPress installation"]
+        Theme["angebot theme\nPage templates, layout, CSS, browser JavaScript"]
+        Plugin["angebot-deals plugin\nMarketplace and membership business rules"]
+        WC["WooCommerce\nProducts, cart, checkout, orders, account"]
+        Core["WordPress core\nHooks, users, posts, taxonomies, admin, mail API"]
+        DB[("WordPress database\nCore tables + 3 angebot tables")]
+        Uploads["Uploads directory\nEligibility proof files"]
+    end
+    Mail["Configured mail transport"]
+    QR["api.qrserver.com"]
 
-    U->>Reg: Register (name, DOB, phone, address)
-    Reg->>Mem: woocommerce_created_customer
-    Mem->>Mem: status = unverified
-    U->>Elig: My Account -> Membership: submit benefit + document
-    Elig->>Elig: store file, status = pending
-    Elig-->>Adm: email: review needed
-    Adm->>Elig: Approve or Reject
-    Elig->>Mem: set_status()
-    Elig-->>U: email: decision
-    U->>WC: Add deal to cart
-    WC->>Mem: can_purchase(user)?
-    Mem-->>WC: allowed only if verified
-    U->>WC: Checkout and pay
-    WC->>Vou: order completed
-    Vou-->>U: email: code + QR
-    U->>Vou: show code/QR to merchant
-    Vou->>Vou: status -> redeemed
+    Browser --> Theme
+    Browser --> Plugin
+    Theme --> Core
+    Plugin --> Core
+    Plugin --> WC
+    WC --> Core
+    Core --> DB
+    Plugin --> DB
+    Plugin --> Uploads
+    Plugin -. "wp_mail()" .-> Mail
+    Browser -. "loads QR image URL" .-> QR
 ```
 
-Membership status is checked three times — add-to-cart, cart, and checkout — so a status change mid-cart still blocks the order.
+The plugin does not replace WooCommerce checkout. A deal is stored as a WordPress `deal` post, while a linked, hidden WooCommerce simple product is used for purchase. The theme and plugin both run inside the same WordPress request and use WordPress hooks and APIs.
 
-### Merchant: submit a deal
+## 4. Plugin components (C4 Level 3)
+
+The plugin bootstrap checks for WooCommerce, registers the explicit class autoloader, and initializes the modules from `class-plugin.php`. The modules register callbacks on WordPress and WooCommerce hooks; there is no separate router or dependency-injection container.
 
 ```mermaid
-sequenceDiagram
-    participant M as Merchant
-    participant MP as Merchant Portal
-    participant Post as deal post + meta_input
-    participant Sync as WooCommerce_Sync
-    participant Adm as Admin
-
-    M->>MP: Register choosing "run a business"
-    MP->>M: Merchant role granted automatically
-    M->>MP: Submit new deal (title, price, quota, photo)
-    MP->>Post: wp_insert_post(status=pending, meta_input={...})
-    Post->>Sync: save_post_deal fires
-    Sync->>Sync: create hidden WC product (draft)
-    MP-->>Adm: email: deal awaiting review
-    Adm->>Post: Publish from wp-admin
-    Post->>Sync: save_post_deal fires again
-    Sync->>Sync: product -> publish, now purchasable
+flowchart TB
+    Bootstrap["angebot-deals.php\nWooCommerce check + lifecycle hooks"] --> Autoloader["class-autoloader.php\nExplicit class-to-file map"]
+    Bootstrap --> Plugin["class-plugin.php\nRegisters module hooks + version upgrades"]
+    Plugin --> Catalog["Catalogue\nDeal_CPT + Deal_Meta + WooCommerce_Sync"]
+    Plugin --> Membership["Membership & eligibility\nMembership + Eligibility + Impact"]
+    Plugin --> Commerce["Purchase & voucher\nVoucher + Voucher_Email + QR_Code"]
+    Plugin --> Merchant["Merchant tools\nMerchant_Role + Merchant_Portal"]
+    Plugin --> Frontend["Frontend features\nShortcodes + Ajax_Filters + Location + Assets"]
+    Plugin --> Admin["Admin & content\nAdmin + Reviews + Legal_Pages + Demo_Content"]
+    Catalog --> WP["WordPress and WooCommerce APIs"]
+    Membership --> WP
+    Commerce --> WP
+    Merchant --> WP
+    Frontend --> WP
+    Admin --> WP
 ```
 
-`meta_input` on the initial insert matters: it sets price/quota before WooCommerce_Sync's first run, so the very first product sync already has correct data.
+| Area | Main classes | Responsibility |
+|---|---|---|
+| Catalogue | `Deal_CPT`, `Deal_Meta`, `WooCommerce_Sync` | Register deals and taxonomies, store deal metadata, and mirror published deals to hidden WooCommerce products. |
+| Membership | `Membership`, `Eligibility`, `Impact` | Extend WooCommerce registration/account pages, collect and review eligibility submissions, gate purchases, and calculate impact totals. |
+| Purchase and vouchers | `Voucher`, `Voucher_Email`, `QR_Code` | Create voucher rows from WooCommerce order status events, send voucher details, and resolve QR redemption URLs. |
+| Merchant tools | `Merchant_Role`, `Merchant_Portal` | Limit merchants to their own deals and vouchers; support deal submission and voucher redemption. |
+| Frontend | `Shortcodes`, `Ajax_Filters`, `Location`, `Assets` | Render deal grids and filters, persist location selection, and enqueue plugin assets. |
+| Administration and content | `Admin`, `Reviews`, `Legal_Pages`, `Demo_Content` | Provide settings, review moderation, generated legal-page templates, and sample deals. |
 
-## 7. Operational notes
+## 5. Data ownership
 
-**New URL added? Flush permalinks.**
-Every My Account tab (Membership, My Deals, Merchant Portal) and the `/register/` page are WordPress rewrite endpoints. After any deploy that touches routing, re-save **Settings → Permalinks** once — otherwise the new URL 404s even though the code is correct.
+```mermaid
+flowchart LR
+    Deal["deal post + post meta"] -->|linked product id| Product["Hidden WooCommerce product"]
+    Deal --> Category["deal_category / deal_location taxonomies"]
+    Order["WooCommerce order + order items"] -->|order references| Voucher["angebot_vouchers table"]
+    User["WordPress user + user meta"] -->|membership state| Eligibility["angebot_eligibility table"]
+    User -->|owns / submits| Voucher
+    User -->|writes| Review["angebot_reviews table"]
+    Deal --> Voucher
+    Deal --> Review
+    Eligibility -->|file name only; file stored separately| Files["angebot-eligibility uploads folder"]
+```
 
-**Cache can outlive the fix.**
-LiteSpeed Cache can keep serving a 404 or stale page from before a fix was deployed. If Permalinks are saved and it still looks broken, purge LiteSpeed Cache next.
+The plugin creates three custom tables: `{prefix}angebot_vouchers`, `{prefix}angebot_eligibility`, and `{prefix}angebot_reviews`. The database prefix is configured by WordPress and is not guaranteed to be `wp_`. Deal descriptions and ownership use WordPress posts and post metadata; cart and order records belong to WooCommerce.
 
-**Email needs real SMTP.**
-All notifications (`wp_mail`) use PHP's default mail transport unless an SMTP plugin is configured — unreliable on shared hosting, worse on a temporary `*.hostingersite.com` domain with no SPF/DKIM. Install WP Mail SMTP + a provider (Brevo, etc.) before relying on any email in this system.
+## 6. Main processes
 
-**Eligibility documents are sensitive data.**
-Stored in a deny-all `wp-content/uploads/angebot-eligibility/` folder, random filenames, served only through a capability-checked endpoint, auto-deleted after a configurable retention period. A DPIA is still required before collecting real submissions — this is engineering, not legal sign-off.
+### 6.1 Membership verification and purchase gate
 
----
+```mermaid
+flowchart LR
+    Register["Register through WooCommerce"] --> Unverified["Membership: unverified"]
+    Unverified --> Submit["Submit benefit details, proof, and consent"]
+    Submit --> Pending["Eligibility record: pending"]
+    Pending --> Review{"Administrator reviews submission"}
+    Review -->|Approve| Verified["Membership: verified"]
+    Review -->|Reject| Rejected["Membership: rejected"]
+    Verified --> Cart["Add deal to cart"]
+    Cart --> Gate["Membership checks add-to-cart, cart, and checkout"]
+    Gate --> Checkout["WooCommerce checkout"]
+    Rejected --> Submit
+```
 
-Reflects plugin v1.4.1 / branch `claude/funny-noether-uk1dcc`. Update this page when the module list or deploy process changes.
+The purchase check is attached at multiple WooCommerce stages so an unverified account cannot complete a purchase by bypassing the initial add-to-cart check. Eligibility proof is stored under the uploads directory and the handler checks the current user or the review capability before serving a file. These implementation controls do not by themselves establish legal compliance or safe server/back-up configuration.
+
+### 6.2 Deal publishing and product synchronization
+
+```mermaid
+flowchart LR
+    Merchant["Merchant submits deal"] --> Pending["WordPress deal post: pending"]
+    Admin["Administrator publishes deal"] --> Publish["WordPress deal post: published"]
+    Pending --> Save["save_post_deal hook"]
+    Publish --> Save
+    Save --> Sync["WooCommerce_Sync"]
+    Sync --> Product["Create/update linked hidden simple product"]
+    Product -->|published deal| Buyable["Product can be purchased through WooCommerce"]
+    Product -->|pending or draft deal| NotBuyable["Product stays draft"]
+```
+
+Merchant submissions set price and quantity metadata as part of the initial post insert. The sync listener then mirrors the deal's status, price, stock, text, and image to its WooCommerce product.
+
+### 6.3 Order to voucher to redemption
+
+```mermaid
+flowchart LR
+    Order["WooCommerce order enters processing or completed"] --> Generate["Voucher module creates one voucher per purchased unit"]
+    Generate --> Store["Store code, QR token, customer, deal, and merchant in custom table"]
+    Store --> Email["Send voucher email through wp_mail()"]
+    Store --> Customer["Customer views voucher in My Deals"]
+    Customer --> Merchant["Merchant opens QR URL or enters code"]
+    Merchant --> Check["Plugin checks capability and deal ownership"]
+    Check --> Redeem["Voucher status becomes redeemed"]
+    Cancel["Order cancelled or refunded"] --> CancelVoucher["Active vouchers become cancelled"]
+```
+
+Voucher generation is triggered for WooCommerce `processing` and `completed` order statuses, and cancellation/refund events cancel active vouchers. QR images are hosted by `api.qrserver.com`; voucher tokens are included in the URL sent to that service. Do not treat the QR service as a private or local component.
+
+## 7. Packaging and deployment
+
+The repository includes `pack-for-hostinger.sh` to build plugin and theme ZIP files. Uploading these packages to a WordPress site is a separate release step; the repository itself does not deploy to Hostinger. After installing routing changes, rewrite rules may need to be refreshed. Cache invalidation depends on the cache plugin configured on the target host.
+
+```mermaid
+flowchart LR
+    Source["Repository source"] --> Package["pack-for-hostinger.sh"]
+    Package --> PluginZip["angebot-deals.zip"]
+    Package --> ThemeZip["angebot-theme.zip"]
+    PluginZip --> Upload["Upload via WordPress or hosting file manager"]
+    ThemeZip --> Upload
+    Upload --> Site["WordPress installation"]
+```
+
+## 8. Known inconsistencies and follow-up
+
+These are observed mismatches between repository documentation, packaging, and source. Resolve them before describing the project as a finished UK deployment:
+
+1. **Market and locations:** eligibility copy lists UK benefits, but `class-location.php` seeds German cities and sets Berlin as the default. There is no UK-city seeding or migration in the inspected code; the README now calls out this mismatch.
+2. **Folder naming:** the source directories in Git retain download suffixes (`angebot-deals (3)` and `angebot-theme (5)`). The packaging script now points to these actual directories, but renaming them to clean paths would make the repository easier to navigate; update the script and documentation with any rename.
+3. **Email delivery:** the application calls `wp_mail()`. Actual delivery depends on the WordPress host or an SMTP/mail plugin; the code does not configure an SMTP provider itself.
+4. **Production readiness:** the repository contains no automated test suite or deployment workflow. Documentation describes implementation behavior, not proof of live-site behavior. Eligibility handling also needs an operational/legal review before real sensitive documents are collected.
+
+## 9. Source map
+
+```text
+plugin/angebot-deals (3)/angebot-deals/
+├── angebot-deals.php          # Plugin entry point and lifecycle hooks
+├── includes/                   # Business modules and WordPress hook handlers
+├── admin/views/                # WordPress admin templates
+├── templates/                  # Public and account templates
+└── public/                     # Plugin CSS and JavaScript
+
+theme/angebot-theme (5)/angebot/
+├── functions.php               # Theme setup and asset loading
+├── *.php                       # WordPress page templates
+└── assets/                     # Theme CSS, JavaScript, and images
+```
+
+Keep this document aligned with the source tree, WordPress hooks, and release packaging when those change.
