@@ -287,7 +287,7 @@ final class Angebot_Deals_Membership
                 <input type="text" class="woocommerce-Input woocommerce-Input--text input-text" name="angebot_reg_postcode" id="angebot_reg_postcode" value="<?php echo esc_attr($postcode); ?>" required>
             </p>
             <?php if ($account_type === 'merchant') : ?>
-                <p class="angebot-reg-note"><?php esc_html_e('We use these details for your merchant profile and to contact you about deals. After registering you can submit your first deal straight away from Account → Membership.', 'angebot-deals'); ?></p>
+                <p class="angebot-reg-note"><?php esc_html_e('We use these details to verify your business and contact you about deals. You can submit deals after our team approves your seller account.', 'angebot-deals'); ?></p>
             <?php else : ?>
                 <p class="angebot-reg-note"><?php esc_html_e('We ask for these details because Highbridge membership is restricted to UK benefit recipients. After registering you will be asked to verify your eligibility.', 'angebot-deals'); ?></p>
             <?php endif; ?>
@@ -386,6 +386,7 @@ final class Angebot_Deals_Membership
             // deals for themselves like anyone else if they choose to.
             $user = new WP_User($customer_id);
             $user->add_role(Angebot_Deals_Merchant_Role::ROLE);
+            update_user_meta($customer_id, '_angebot_merchant_status', 'pending');
         }
     }
 
