@@ -12,6 +12,8 @@ final class Angebot_Deals_Merchant_Portal
     public static function register_hooks(): void
     {
         add_action('admin_menu', [self::class, 'admin_menu']);
+        add_action('admin_post_angebot_merchant_decision', [self::class, 'handle_merchant_decision']);
+        add_action('admin_menu', [self::class, 'merchant_review_menu']);
         add_action('wp_ajax_angebot_redeem_voucher', [self::class, 'ajax_redeem']);
         add_action('wp_ajax_angebot_lookup_voucher', [self::class, 'ajax_lookup']);
         add_shortcode('angebot_merchant_portal', [self::class, 'shortcode']);
@@ -76,10 +78,48 @@ final class Angebot_Deals_Merchant_Portal
         );
     }
 
+    public static function merchant_review_menu(): void
+    {
+        add_submenu_page('edit.php?post_type=deal', __('Seller verification', 'angebot-deals'), __('Seller verification', 'angebot-deals'), 'manage_options', 'angebot-merchants', [self::class, 'render_merchant_reviews']);
+    }
+
+    public static function render_merchant_reviews(): void
+    {
+        if (!current_user_can('manage_options')) {
+            wp_die(esc_html__('Permission denied.', 'angebot-deals'));
+        }
+        $users = get_users(['role' => Angebot_Deals_Merchant_Role::ROLE, 'orderby' => 'registered', 'order' => 'DESC']);
+        ?>
+        <div class="wrap"><h1><?php esc_html_e('Seller verification', 'angebot-deals'); ?></h1>
+        <p><?php esc_html_e('Review each seller’s name and contact details in their user profile before approving them.', 'angebot-deals'); ?></p>
+        <table class="widefat striped"><thead><tr><th><?php esc_html_e('Seller', 'angebot-deals'); ?></th><th><?php esc_html_e('Contact details', 'angebot-deals'); ?></th><th><?php esc_html_e('Status', 'angebot-deals'); ?></th><th><?php esc_html_e('Action', 'angebot-deals'); ?></th></tr></thead><tbody>
+        <?php foreach ($users as $user) : $status = (string) get_user_meta($user->ID, '_angebot_merchant_status', true); $status = $status ?: 'pending'; ?>
+            <tr><td><strong><?php echo esc_html($user->display_name); ?></strong><br><?php echo esc_html($user->user_email); ?></td>
+            <td><?php echo esc_html((string) get_user_meta($user->ID, '_angebot_phone', true)); ?><br><?php echo esc_html(implode(', ', array_filter([(string) get_user_meta($user->ID, 'billing_address_1', true), (string) get_user_meta($user->ID, 'billing_city', true), (string) get_user_meta($user->ID, 'billing_postcode', true)]))); ?><br><a href="<?php echo esc_url(get_edit_user_link($user->ID)); ?>"><?php esc_html_e('View profile', 'angebot-deals'); ?></a></td>
+            <td><?php echo esc_html(ucfirst($status)); ?></td><td><?php if ($status !== 'approved') : ?><form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>"><?php wp_nonce_field('angebot_merchant_decision_' . $user->ID); ?><input type="hidden" name="action" value="angebot_merchant_decision"><input type="hidden" name="user_id" value="<?php echo esc_attr((string) $user->ID); ?>"><input type="hidden" name="decision" value="approved"><button class="button button-primary"><?php esc_html_e('Approve seller', 'angebot-deals'); ?></button></form><?php else : esc_html_e('Approved', 'angebot-deals'); endif; ?></td></tr>
+        <?php endforeach; if (!$users) : ?><tr><td colspan="4"><?php esc_html_e('No seller accounts found.', 'angebot-deals'); ?></td></tr><?php endif; ?>
+        </tbody></table></div><?php
+    }
+
+    public static function handle_merchant_decision(): void
+    {
+        if (!current_user_can('manage_options')) { wp_die(esc_html__('Permission denied.', 'angebot-deals')); }
+        $user_id = absint($_POST['user_id'] ?? 0);
+        check_admin_referer('angebot_merchant_decision_' . $user_id);
+        $user = get_userdata($user_id);
+        if (!$user || !in_array(Angebot_Deals_Merchant_Role::ROLE, (array) $user->roles, true)) { wp_die(esc_html__('Seller not found.', 'angebot-deals')); }
+        update_user_meta($user_id, '_angebot_merchant_status', 'approved');
+        wp_mail($user->user_email, __('Your seller account is approved', 'angebot-deals'), __('Your seller account has been verified. You can now submit deals and manage vouchers.', 'angebot-deals'));
+        wp_safe_redirect(add_query_arg(['page' => 'angebot-merchants', 'post_type' => 'deal'], admin_url('edit.php'))); exit;
+    }
+
     public static function render_admin_page(): void
     {
         if (!current_user_can('angebot_redeem_voucher')) {
             wp_die(esc_html__('Permission denied.', 'angebot-deals'));
+        }
+        if (!current_user_can('manage_options') && !self::is_merchant_approved(get_current_user_id())) {
+            wp_die(esc_html__('Your seller account must be verified before using the voucher tools.', 'angebot-deals'), '', ['response' => 403]);
         }
 
         $user_id  = get_current_user_id();
@@ -120,6 +160,9 @@ final class Angebot_Deals_Merchant_Portal
         if (!is_user_logged_in() || !current_user_can('angebot_redeem_voucher')) {
             return '<p>' . esc_html__('Please log in as a merchant to redeem vouchers.', 'angebot-deals') . '</p>';
         }
+        if (!current_user_can('manage_options') && !self::is_merchant_approved(get_current_user_id())) {
+            return '<p>' . esc_html__('Your seller account is awaiting verification by our team. The Merchant Portal will be available after approval.', 'angebot-deals') . '</p>';
+        }
 
         ob_start();
         include ANGEBOT_DEALS_PATH . 'templates/merchant-portal.php';
@@ -132,6 +175,9 @@ final class Angebot_Deals_Merchant_Portal
 
     public static function render_submit_deal_form(): string
     {
+        if (!current_user_can('manage_options') && !self::is_merchant_approved(get_current_user_id())) {
+            return '<p>' . esc_html__('Your seller account is awaiting verification by our team. You can submit deals after approval.', 'angebot-deals') . '</p>';
+        }
         $categories = get_terms(['taxonomy' => Angebot_Deals_Deal_CPT::TAX_CATEGORY, 'hide_empty' => false]);
         $locations  = get_terms(['taxonomy' => Angebot_Deals_Deal_CPT::TAX_LOCATION, 'hide_empty' => false]);
         $notice     = self::consume_deal_notice();
@@ -139,6 +185,11 @@ final class Angebot_Deals_Merchant_Portal
         ob_start();
         include ANGEBOT_DEALS_PATH . 'templates/merchant-submit-deal.php';
         return (string) ob_get_clean();
+    }
+
+    public static function is_merchant_approved(int $user_id): bool
+    {
+        return get_user_meta($user_id, '_angebot_merchant_status', true) === 'approved';
     }
 
     public static function render_my_deals_list(): string
@@ -183,6 +234,9 @@ final class Angebot_Deals_Merchant_Portal
 
         if (!current_user_can('angebot_submit_deal')) {
             wp_die(esc_html__('Permission denied.', 'angebot-deals'));
+        }
+        if (!current_user_can('manage_options') && !self::is_merchant_approved(get_current_user_id())) {
+            wp_die(esc_html__('Your seller account must be verified before submitting deals.', 'angebot-deals'), '', ['response' => 403]);
         }
 
         check_admin_referer('angebot_submit_deal', 'angebot_submit_deal_nonce');
@@ -309,6 +363,9 @@ final class Angebot_Deals_Merchant_Portal
         if (!current_user_can('angebot_redeem_voucher')) {
             wp_send_json_error(['message' => __('Permission denied.', 'angebot-deals')], 403);
         }
+        if (!current_user_can('manage_options') && !self::is_merchant_approved(get_current_user_id())) {
+            wp_send_json_error(['message' => __('Your seller account is awaiting verification.', 'angebot-deals')], 403);
+        }
 
         $code  = isset($_POST['code']) ? sanitize_text_field(wp_unslash($_POST['code'])) : '';
         $token = isset($_POST['token']) ? sanitize_text_field(wp_unslash($_POST['token'])) : '';
@@ -345,6 +402,9 @@ final class Angebot_Deals_Merchant_Portal
 
         if (!current_user_can('angebot_redeem_voucher')) {
             wp_send_json_error(['message' => __('Permission denied.', 'angebot-deals')], 403);
+        }
+        if (!current_user_can('manage_options') && !self::is_merchant_approved(get_current_user_id())) {
+            wp_send_json_error(['message' => __('Your seller account is awaiting verification.', 'angebot-deals')], 403);
         }
 
         $id = absint($_POST['voucher_id'] ?? 0);
