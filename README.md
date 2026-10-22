@@ -86,13 +86,14 @@ Benefit type, disability-related proof, and the uploaded document are **special 
 
 ### Merchant workflow
 
-1. A business gets the **Merchant** role either by choosing "I run a local business and want to list deals" on the normal registration form, or by an admin assigning the Merchant role in **Users** later.
-2. As soon as they log in, **My Account → Merchant Portal** appears automatically (no admin setup, page, or shortcode needed — it's a My Account tab, just like Membership and My Deals). There, a merchant can:
-   - **Submit a new deal** — title, category, city, prices, quota, description, optional photo. It's saved as `pending`; the admin is emailed and publishes it from wp-admin like any other post. (Submitting while logged in as an admin publishes immediately, for quick testing.)
+1. A business gets the **Merchant** role by choosing "I run a local business and want to list deals" on registration. New seller accounts start as **pending verification**.
+2. An administrator reviews the seller's name and contact details under **Deals → Seller verification** and approves the account. Until approval, deal submission and voucher tools are blocked. The seller receives an email after approval. Existing merchant accounts without a saved approval are treated as pending and must also be approved.
+3. Once approved, **My Account → Merchant Portal** appears automatically (no page or shortcode setup needed). There, a merchant can:
+   - **Submit a new deal** — title, required category, city, prices, quota, description, optional photo. It's saved as `pending`; the admin is emailed and publishes it from wp-admin like any other post. (Submitting while logged in as an admin publishes immediately, for quick testing.)
    - See **Your deals** with live status (Live / Pending review / Draft).
    - **Check & redeem** a customer's voucher code/QR, as before.
-3. Merchants only ever see and edit their own deals (`merchant_user_id` is locked to themselves, both in this frontend form and in the wp-admin metabox).
-4. QR opens `/voucher/{token}/` — logged-in merchants can approve redemption there.
+4. Merchants only ever see and edit their own deals (`merchant_user_id` is locked to themselves, both in this frontend form and in the wp-admin metabox).
+5. QR opens `/voucher/{token}/` — approved merchants can approve redemption there.
 
 ## Branding (important)
 
