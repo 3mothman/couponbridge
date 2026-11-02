@@ -6,7 +6,7 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * Digital Highbridge membership: extended registration fields (identity
+ * Digital CouponBridge membership: extended registration fields (identity
  * data, not the eligibility proof itself — see Angebot_Deals_Eligibility)
  * and the membership status gate that controls who may purchase deals.
  */
@@ -267,7 +267,7 @@ final class Angebot_Deals_Membership
         $account_type = self::sanitize_account_type($_POST['angebot_account_type'] ?? '');
         ?>
         <fieldset class="angebot-reg-fields angebot-reg-fields__type">
-            <legend><?php esc_html_e('How will you use Highbridge?', 'angebot-deals'); ?></legend>
+            <legend><?php esc_html_e('How will you use CouponBridge?', 'angebot-deals'); ?></legend>
             <p class="form-row form-row-wide angebot-reg-account-type">
                 <label>
                     <input type="radio" name="angebot_account_type" value="customer" <?php checked($account_type, 'customer'); ?>>
@@ -306,7 +306,7 @@ final class Angebot_Deals_Membership
                 <input type="text" class="woocommerce-Input woocommerce-Input--text input-text" name="angebot_reg_postcode" id="angebot_reg_postcode" value="<?php echo esc_attr($postcode); ?>" required>
             </p>
                 <p class="angebot-reg-note" data-account-note="merchant" <?php echo $account_type !== 'merchant' ? 'hidden' : ''; ?>><?php esc_html_e('Our team reviews your seller account before you can submit deals. After registration you may optionally upload a business document in the Merchant Portal. Benefit eligibility evidence is not required for sellers.', 'angebot-deals'); ?></p>
-                <p class="angebot-reg-note" data-account-note="customer" <?php echo $account_type !== 'customer' ? 'hidden' : ''; ?>><?php esc_html_e('We ask for these details because Highbridge membership is restricted to UK benefit recipients. After registering you will be asked to verify your eligibility.', 'angebot-deals'); ?></p>
+                <p class="angebot-reg-note" data-account-note="customer" <?php echo $account_type !== 'customer' ? 'hidden' : ''; ?>><?php esc_html_e('We ask for these details because CouponBridge membership is restricted to UK benefit recipients. After registering you will be asked to verify your eligibility.', 'angebot-deals'); ?></p>
         </fieldset>
         <?php
     }
@@ -463,7 +463,7 @@ final class Angebot_Deals_Membership
             wc_add_notice(
                 sprintf(
                     /* translators: %s: login/account URL */
-                    __('Please <a href="%s">log in or register</a> to buy Highbridge deals.', 'angebot-deals'),
+                    __('Please <a href="%s">log in or register</a> to buy CouponBridge deals.', 'angebot-deals'),
                     esc_url(function_exists('wc_get_page_permalink') ? wc_get_page_permalink('myaccount') : wp_login_url())
                 ),
                 'error'
@@ -487,7 +487,7 @@ final class Angebot_Deals_Membership
         $url = function_exists('wc_get_account_endpoint_url') ? wc_get_account_endpoint_url(self::ENDPOINT) : '';
         return sprintf(
             /* translators: %s: membership page URL */
-            __('Highbridge deals are only available to verified members. <a href="%s">Verify your eligibility</a> to unlock purchasing.', 'angebot-deals'),
+            __('CouponBridge deals are only available to verified members. <a href="%s">Verify your eligibility</a> to unlock purchasing.', 'angebot-deals'),
             esc_url($url)
         );
     }
@@ -508,7 +508,7 @@ final class Angebot_Deals_Membership
     public static function register_exporter(array $exporters): array
     {
         $exporters['angebot-membership'] = [
-            'exporter_friendly_name' => __('Highbridge membership data', 'angebot-deals'),
+            'exporter_friendly_name' => __('CouponBridge membership data', 'angebot-deals'),
             'callback'                => [self::class, 'export_data'],
         ];
         return $exporters;
@@ -524,7 +524,7 @@ final class Angebot_Deals_Membership
         $status = self::get_status($user->ID);
         $items  = [[
             'group_id'    => 'angebot-membership',
-            'group_label' => __('Highbridge membership', 'angebot-deals'),
+            'group_label' => __('CouponBridge membership', 'angebot-deals'),
             'item_id'     => 'membership-' . $user->ID,
             'data'        => [
                 ['name' => __('Full name', 'angebot-deals'), 'value' => (string) get_user_meta($user->ID, '_angebot_full_name', true)],
@@ -544,7 +544,7 @@ final class Angebot_Deals_Membership
     public static function register_eraser(array $erasers): array
     {
         $erasers['angebot-membership'] = [
-            'eraser_friendly_name' => __('Highbridge membership data', 'angebot-deals'),
+            'eraser_friendly_name' => __('CouponBridge membership data', 'angebot-deals'),
             'callback'              => [self::class, 'erase_data'],
         ];
         return $erasers;

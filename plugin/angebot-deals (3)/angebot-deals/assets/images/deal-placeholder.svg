@@ -6,6 +6,6 @@
     </linearGradient>
   </defs>
   <rect width="640" height="400" fill="url(#g)"/>
-  <text x="320" y="205" text-anchor="middle" fill="#ffffff" font-family="Georgia, serif" font-size="42" font-weight="700">Highbridge</text>
+  <text x="320" y="205" text-anchor="middle" fill="#ffffff" font-family="Georgia, serif" font-size="42" font-weight="700">CouponBridge</text>
   <text x="320" y="245" text-anchor="middle" fill="#BFE0DA" font-family="Arial, sans-serif" font-size="16">Deal image coming soon</text>
 </svg>

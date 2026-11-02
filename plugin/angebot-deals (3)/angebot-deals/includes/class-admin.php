@@ -52,7 +52,7 @@ final class Angebot_Deals_Admin
         register_setting('angebot_deals', 'angebot_brand_name', [
             'type'              => 'string',
             'sanitize_callback' => 'sanitize_text_field',
-            'default'           => 'Highbridge',
+            'default'           => 'CouponBridge',
         ]);
         register_setting('angebot_deals', 'angebot_eligibility_notify_email', [
             'type'              => 'string',
@@ -70,14 +70,14 @@ final class Angebot_Deals_Admin
     {
         ?>
         <div class="wrap">
-            <h1><?php esc_html_e('Angebot Deals — Settings', 'angebot-deals'); ?></h1>
+            <h1><?php esc_html_e('CouponBridge Deals — Settings', 'angebot-deals'); ?></h1>
             <form method="post" action="options.php">
                 <?php settings_fields('angebot_deals'); ?>
                 <table class="form-table">
                     <tr>
                         <th><label for="angebot_brand_name"><?php esc_html_e('Brand name', 'angebot-deals'); ?></label></th>
                         <td>
-                            <input type="text" class="regular-text" id="angebot_brand_name" name="angebot_brand_name" value="<?php echo esc_attr((string) get_option('angebot_brand_name', 'Highbridge')); ?>">
+                            <input type="text" class="regular-text" id="angebot_brand_name" name="angebot_brand_name" value="<?php echo esc_attr((string) get_option('angebot_brand_name', 'CouponBridge')); ?>">
                             <p class="description"><?php esc_html_e('Your own brand name — do not use “Groupon”.', 'angebot-deals'); ?></p>
                         </td>
                     </tr>

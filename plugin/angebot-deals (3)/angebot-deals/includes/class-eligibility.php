@@ -587,10 +587,10 @@ final class Angebot_Deals_Eligibility
         $site = wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES);
 
         if ($status === self::STATUS_VERIFIED) {
-            $subject = sprintf(__('[%s] You are now a verified Highbridge member', 'angebot-deals'), $site);
+            $subject = sprintf(__('[%s] You are now a verified CouponBridge member', 'angebot-deals'), $site);
             $shop    = function_exists('wc_get_page_permalink') ? wc_get_page_permalink('shop') : home_url('/');
             $body    = sprintf(
-                __("Good news — your eligibility has been verified and your Highbridge membership is now active.\n\nYou can browse and buy deals here: %s", 'angebot-deals'),
+                __("Good news — your eligibility has been verified and your CouponBridge membership is now active.\n\nYou can browse and buy deals here: %s", 'angebot-deals'),
                 $shop
             );
         } else {
@@ -613,7 +613,7 @@ final class Angebot_Deals_Eligibility
     public static function register_exporter(array $exporters): array
     {
         $exporters['angebot-eligibility'] = [
-            'exporter_friendly_name' => __('Highbridge eligibility submissions', 'angebot-deals'),
+            'exporter_friendly_name' => __('CouponBridge eligibility submissions', 'angebot-deals'),
             'callback'                => [self::class, 'export_data'],
         ];
         return $exporters;
@@ -630,7 +630,7 @@ final class Angebot_Deals_Eligibility
         foreach (self::get_for_user($user->ID) as $row) {
             $items[] = [
                 'group_id'    => 'angebot-eligibility',
-                'group_label' => __('Highbridge eligibility submissions', 'angebot-deals'),
+                'group_label' => __('CouponBridge eligibility submissions', 'angebot-deals'),
                 'item_id'     => 'submission-' . $row->id,
                 'data'        => [
                     ['name' => __('Benefit type', 'angebot-deals'), 'value' => self::benefit_types()[$row->benefit_type] ?? $row->benefit_type],
@@ -648,7 +648,7 @@ final class Angebot_Deals_Eligibility
     public static function register_eraser(array $erasers): array
     {
         $erasers['angebot-eligibility'] = [
-            'eraser_friendly_name' => __('Highbridge eligibility submissions', 'angebot-deals'),
+            'eraser_friendly_name' => __('CouponBridge eligibility submissions', 'angebot-deals'),
             'callback'              => [self::class, 'erase_data'],
         ];
         return $erasers;

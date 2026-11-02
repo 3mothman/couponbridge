@@ -4,7 +4,7 @@
     <div class="container site-footer__grid">
         <div class="site-footer__brand">
             <p class="site-footer__logo">
-                <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo.png'); ?>" alt="<?php echo esc_attr(angebot_brand_name()); ?>" width="28" height="28">
+                <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/couponbridge.svg'); ?>" alt="<?php echo esc_attr(angebot_brand_name()); ?>" width="28" height="28">
                 <?php echo esc_html(angebot_brand_name()); ?>
             </p>
             <p><?php esc_html_e('Local deals, real experiences — vouchers for restaurants, wellness, leisure and more in your city.', 'angebot'); ?></p>

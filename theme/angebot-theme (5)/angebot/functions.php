@@ -5,7 +5,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('ANGEBOT_THEME_VERSION', '1.1.2');
+define('ANGEBOT_THEME_VERSION', '1.1.3');
 
 add_action('after_setup_theme', static function (): void {
     load_theme_textdomain('angebot', get_template_directory() . '/languages');
@@ -71,7 +71,7 @@ function angebot_brand_name(): string
     // (get_bloginfo('name')) — on a fresh Hostinger install that's the
     // auto-generated subdomain (e.g. "lavenderblush-bat-933834...."),
     // which is far too long to use as a logo/header label.
-    return 'Highbridge';
+    return 'CouponBridge';
 }
 
 function angebot_cart_count(): int

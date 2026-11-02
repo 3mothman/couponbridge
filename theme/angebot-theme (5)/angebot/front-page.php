@@ -8,8 +8,8 @@ get_header();
     <div class="hero__atmosphere" aria-hidden="true"></div>
     <div class="container hero__content">
         <p class="hero__brand"><?php echo esc_html(angebot_brand_name()); ?></p>
-        <h1 class="hero__title"><?php esc_html_e('Deals in your city', 'angebot'); ?></h1>
-        <p class="hero__lead"><?php esc_html_e('Save on dining, wellness, leisure and more — local deals with real discounts.', 'angebot'); ?></p>
+        <h1 class="hero__title"><?php esc_html_e('Local deals & coupons', 'angebot'); ?></h1>
+        <p class="hero__lead"><?php esc_html_e('Save on dining, wellness, leisure and more — local coupons and vouchers with real discounts.', 'angebot'); ?></p>
         <div class="hero__cta">
             <a class="angebot-btn angebot-btn--primary" href="<?php echo esc_url(get_post_type_archive_link('deal')); ?>">
                 <?php esc_html_e('Discover deals', 'angebot'); ?>

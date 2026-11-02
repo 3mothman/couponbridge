@@ -1,9 +1,9 @@
 <?php
 /**
- * Plugin Name:       Angebot Deals
+ * Plugin Name:       CouponBridge Deals
  * Plugin URI:        https://angebot.local
  * Description:       Deals platform with WooCommerce checkout, vouchers, merchant portal, and QR redemption.
- * Version:           1.5.0
+ * Version:           1.5.1
  * Requires at least: 6.4
  * Requires PHP:      8.0
  * Author:            Angebot
@@ -19,7 +19,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('ANGEBOT_DEALS_VERSION', '1.5.0');
+define('ANGEBOT_DEALS_VERSION', '1.5.1');
 define('ANGEBOT_DEALS_FILE', __FILE__);
 define('ANGEBOT_DEALS_PATH', plugin_dir_path(__FILE__));
 define('ANGEBOT_DEALS_URL', plugin_dir_url(__FILE__));
@@ -35,7 +35,7 @@ add_action('plugins_loaded', static function (): void {
     if (!class_exists('WooCommerce')) {
         add_action('admin_notices', static function (): void {
             echo '<div class="notice notice-error"><p>';
-            echo esc_html__('Angebot Deals requires WooCommerce. Please install and activate WooCommerce.', 'angebot-deals');
+            echo esc_html__('CouponBridge Deals requires WooCommerce. Please install and activate WooCommerce.', 'angebot-deals');
             echo '</p></div>';
         });
         return;

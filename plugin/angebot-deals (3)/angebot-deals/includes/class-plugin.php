@@ -53,6 +53,8 @@ final class Angebot_Deals_Plugin
             return;
         }
 
+        self::migrate_branding();
+
         Angebot_Deals_Activator::create_voucher_table();
         Angebot_Deals_Activator::create_reviews_table();
         Angebot_Deals_Activator::create_eligibility_table();
@@ -64,5 +66,18 @@ final class Angebot_Deals_Plugin
         // immediately instead of 404ing until someone re-saves Permalinks.
         flush_rewrite_rules();
         update_option('angebot_deals_version', ANGEBOT_DEALS_VERSION);
+    }
+
+    public static function migrate_branding(): void
+    {
+        $old_names = ['', 'Highbridge', 'Angebot', 'Angebot Deals'];
+        if (in_array((string) get_option('angebot_brand_name', ''), $old_names, true)) {
+            update_option('angebot_brand_name', 'CouponBridge');
+        }
+        $title = (string) get_option('blogname', '');
+        if (in_array($title, $old_names, true) || preg_match('/^[a-z0-9-]+\.hostingersite\.com$/i', $title)) {
+            update_option('blogname', 'CouponBridge');
+            update_option('blogdescription', 'Local Deals & Coupons');
+        }
     }
 }

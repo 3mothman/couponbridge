@@ -18,7 +18,7 @@
                     <?php the_custom_logo(); ?>
                 <?php else : ?>
                     <a class="site-logo-text" href="<?php echo esc_url(home_url('/')); ?>">
-                        <img class="site-logo-image" src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo.png'); ?>" alt="<?php echo esc_attr(angebot_brand_name()); ?>" width="64" height="64">
+                        <img class="site-logo-image" src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/couponbridge.svg'); ?>" alt="<?php echo esc_attr(angebot_brand_name()); ?>" width="64" height="64">
                         <span class="site-logo-name"><?php echo esc_html(angebot_brand_name()); ?></span>
                     </a>
                 <?php endif; ?>

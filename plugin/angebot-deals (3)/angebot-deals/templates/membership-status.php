@@ -17,7 +17,7 @@ $shop_url = function_exists('wc_get_page_permalink') ? wc_get_page_permalink('sh
     </p>
 
     <?php if ($status === Angebot_Deals_Membership::STATUS_VERIFIED) : ?>
-        <p><?php esc_html_e('You are a verified Highbridge member. You can browse and buy any deal on the site.', 'angebot-deals'); ?></p>
+        <p><?php esc_html_e('You are a verified CouponBridge member. You can browse and buy any deal on the site.', 'angebot-deals'); ?></p>
         <p><a class="angebot-btn angebot-btn--primary" href="<?php echo esc_url($shop_url); ?>"><?php esc_html_e('Browse deals', 'angebot-deals'); ?></a></p>
 
     <?php elseif ($status === Angebot_Deals_Membership::STATUS_PENDING) : ?>

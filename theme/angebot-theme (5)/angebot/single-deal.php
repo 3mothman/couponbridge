@@ -113,7 +113,7 @@ while (have_posts()) :
                     <?php endif; ?>
 
                     <?php if (is_user_logged_in() && class_exists('Angebot_Deals_Membership') && !Angebot_Deals_Membership::can_purchase(get_current_user_id())) : ?>
-                        <p class="buybox__note"><?php esc_html_e('You need a verified Highbridge membership to buy deals. Verification usually only takes a couple of days.', 'angebot'); ?></p>
+                        <p class="buybox__note"><?php esc_html_e('You need a verified CouponBridge membership to buy deals. Verification usually only takes a couple of days.', 'angebot'); ?></p>
                     <?php else : ?>
                         <p class="buybox__note"><?php esc_html_e('After purchase you will receive your voucher by email — including a QR code.', 'angebot'); ?></p>
                     <?php endif; ?>

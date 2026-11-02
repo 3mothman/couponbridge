@@ -14,7 +14,7 @@ if (!defined('ABSPATH')) {
     <?php wp_nonce_field('angebot_eligibility_submit', 'angebot_eligibility_nonce'); ?>
 
     <p class="angebot-eligibility-form__intro">
-        <?php esc_html_e('Highbridge membership is reserved for UK benefit recipients. Tell us which support you receive and attach one document as proof — a member of our team reviews it by hand.', 'angebot-deals'); ?>
+        <?php esc_html_e('CouponBridge membership is reserved for UK benefit recipients. Tell us which support you receive and attach one document as proof — a member of our team reviews it by hand.', 'angebot-deals'); ?>
     </p>
 
     <label for="benefit_type">
@@ -48,7 +48,7 @@ if (!defined('ABSPATH')) {
             <?php
             printf(
                 /* translators: %s: privacy policy link */
-                esc_html__('I understand this document may show health, disability or financial information, and I explicitly consent to Highbridge processing it solely to verify my membership eligibility, as described in the %s.', 'angebot-deals'),
+                esc_html__('I understand this document may show health, disability or financial information, and I explicitly consent to CouponBridge processing it solely to verify my membership eligibility, as described in the %s.', 'angebot-deals'),
                 $privacy_url ? '<a href="' . esc_url($privacy_url) . '" target="_blank" rel="noopener">' . esc_html__('Privacy Policy', 'angebot-deals') . '</a>' : esc_html__('Privacy Policy', 'angebot-deals')
             );
             ?>

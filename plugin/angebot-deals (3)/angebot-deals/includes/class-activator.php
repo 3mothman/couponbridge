@@ -18,7 +18,8 @@ final class Angebot_Deals_Activator
         Angebot_Deals_Legal_Pages::maybe_create_pages();
         Angebot_Deals_Impact::maybe_create_page();
         Angebot_Deals_Membership::maybe_create_register_page();
-        add_option('angebot_brand_name', 'Highbridge');
+        add_option('angebot_brand_name', 'CouponBridge');
+        Angebot_Deals_Plugin::migrate_branding();
         add_option('angebot_eligibility_retention_days', 90);
         // New WooCommerce My Account endpoints (membership, my-deals) need
         // a rewrite flush or their URLs 404 until Permalinks is re-saved.

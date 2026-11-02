@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="CouponBridge coupon symbol">
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="#17293f"/>
+  <path d="M12 19h40v9a4 4 0 0 0 0 8v9H12v-9a4 4 0 0 0 0-8z" fill="#bfe0da"/>
+  <path d="M19 37c7-15 19-15 26 0M19 37v5m26-5v5" fill="none" stroke="#17293f" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M18 24h28" stroke="#3f7a72" stroke-width="2" stroke-linecap="round" stroke-dasharray="2 4"/>
+</svg>

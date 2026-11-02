@@ -1,10 +1,10 @@
-# Highbridge — Software Architecture
+# CouponBridge — Software Architecture
 
 This document describes the implementation in the repository's `main` branch. It uses small context, container, and component views, followed by short process diagrams. The diagrams describe the code; they do not claim that the website is currently deployed or that every flow has been tested in production.
 
 ## 1. System purpose and scope
 
-Highbridge is a local-deals marketplace implemented as a WordPress site. WooCommerce handles cart, checkout, orders, and products. The `angebot-deals` plugin provides deal listings, membership eligibility, merchant tools, vouchers, and reviews. The `angebot` theme renders the public pages.
+CouponBridge is a local-deals marketplace implemented as a WordPress site. WooCommerce handles cart, checkout, orders, and products. The `angebot-deals` plugin provides deal listings, membership eligibility, merchant tools, vouchers, and reviews. The `angebot` theme renders the public pages.
 
 The configured service cities are Coventry, Nuneaton, Rugby and Birmingham, with Coventry as the default. Version 1.5.0 seeds these on existing installations, limits city lists, validates selections and normalizes obsolete defaults and cookies. Legacy location records and assignments are preserved.
 
@@ -15,7 +15,7 @@ flowchart LR
     Customer["Customer\nBrowses deals, registers, verifies eligibility, buys, and uses vouchers"]
     Merchant["Merchant\nSubmits deals and redeems vouchers for their own deals"]
     Admin["Administrator\nReviews submissions, manages deals, and operates the site"]
-    Site["Highbridge WordPress site\nangebot theme + angebot-deals plugin + WooCommerce"]
+    Site["CouponBridge WordPress site\nangebot theme + angebot-deals plugin + WooCommerce"]
     Mail["WordPress mail transport\nwp_mail; delivery provider depends on site configuration"]
     QR["QR image service\napi.qrserver.com"]
 

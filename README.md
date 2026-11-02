@@ -1,6 +1,13 @@
-# Angebot — Local Deals Platform
+# CouponBridge - Local Deals & Coupons
 
-WordPress plugin + theme for a Groupon-style deals site with **its own branding** (brand name, logo, colors). Layout and UX follow common local-deals patterns (e.g. groupon.de-style flows) without copying Groupon’s trademarks.
+CouponBridge helps people discover local deals, coupons and vouchers in Coventry, Nuneaton, Rugby and Birmingham. The WordPress plugin and theme include buyer eligibility checks, seller verification and business categories.
+
+The display name is **CouponBridge** and the tagline is **Local Deals & Coupons**.
+The branding update ships as plugin 1.5.1 and theme 1.1.3; install both packages.
+The existing `angebot-deals` plugin and `angebot` theme folder names remain stable
+so updates keep the existing site settings and records. Upgrading replaces the
+old default brand and generated Hostinger site title while preserving custom
+brand names, site titles and uploaded custom logos.
 
 ## Stack
 
@@ -18,7 +25,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for context, containers, plugin component
 2. Copy folders:
    - `plugin/angebot-deals (3)/angebot-deals` → `wp-content/plugins/angebot-deals`
    - `theme/angebot-theme (5)/angebot` → `wp-content/themes/angebot`
-3. Activate the **Angebot Deals** plugin and the **Angebot** theme.
+3. Activate the **CouponBridge Deals** plugin and the **CouponBridge** theme.
 4. Open **Settings → Permalinks** and save once (flush rewrite rules).
 5. Complete WooCommerce setup (**currency GBP £**, store address in the UK).
 6. Set **Settings → General → Site Language** to **English (UK)** — required so WordPress menus/admin are fully English (not German).
