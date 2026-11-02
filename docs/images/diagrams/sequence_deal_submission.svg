@@ -1,0 +1,67 @@
+<svg viewBox="0 0 920 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sequence diagram: a merchant submits a deal that is created as pending, mirrored into a hidden WooCommerce product, and published by an admin after review">
+  <defs>
+    <marker id="a4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#17293F"/>
+    </marker>
+  </defs>
+  <style>
+    text{ font-family:"DM Sans", Arial, sans-serif; fill:#15202b; }
+    .actor{ font-weight:700; font-size:10.5px; text-anchor:middle; }
+    .lifeline{ stroke:#c8d0d8; stroke-width:1; stroke-dasharray:3 3; }
+    .head{ fill:#eef2f6; stroke:#17293F; stroke-width:1.3; }
+    .msg{ stroke:#17293F; stroke-width:1.3; fill:none; }
+    .ret{ stroke:#3F7A72; stroke-width:1.3; fill:none; stroke-dasharray:5 3; }
+    .mlabel{ font-size:9.5px; text-anchor:middle; fill:#15202b; }
+  </style>
+
+  <g>
+    <rect class="head" x="30" y="20" width="110" height="34" rx="6"/><text class="actor" x="85" y="41">Merchant</text>
+    <line class="lifeline" x1="85" y1="54" x2="85" y2="480"/>
+
+    <rect class="head" x="220" y="20" width="150" height="34" rx="6"/>
+    <text class="actor" x="295" y="35">Merchant</text><text class="actor" x="295" y="47">Portal</text>
+    <line class="lifeline" x1="295" y1="54" x2="295" y2="480"/>
+
+    <rect class="head" x="450" y="20" width="150" height="34" rx="6"/>
+    <text class="actor" x="525" y="35">deal post</text><text class="actor" x="525" y="47">+ meta_input</text>
+    <line class="lifeline" x1="525" y1="54" x2="525" y2="480"/>
+
+    <rect class="head" x="680" y="20" width="150" height="34" rx="6"/>
+    <text class="actor" x="755" y="35">WooCommerce_</text><text class="actor" x="755" y="47">Sync</text>
+    <line class="lifeline" x1="755" y1="54" x2="755" y2="480"/>
+
+    <rect class="head" x="860" y="20" width="55" height="34" rx="6"/><text class="actor" x="887" y="41">Admin</text>
+    <line class="lifeline" x1="887" y1="54" x2="887" y2="480"/>
+  </g>
+
+  <line class="msg" x1="85" y1="90" x2="295" y2="90" marker-end="url(#a4)"/>
+  <text class="mlabel" x="190" y="82">1. Register choosing "run a business"</text>
+
+  <line class="ret" x1="295" y1="130" x2="85" y2="130" marker-end="url(#a4)"/>
+  <text class="mlabel" x="190" y="122">2. Merchant role granted</text>
+
+  <line class="msg" x1="85" y1="180" x2="295" y2="180" marker-end="url(#a4)"/>
+  <text class="mlabel" x="190" y="172">3. Submit new deal (title, price, quota, photo)</text>
+
+  <line class="msg" x1="295" y1="230" x2="525" y2="230" marker-end="url(#a4)"/>
+  <text class="mlabel" x="410" y="222">4. wp_insert_post(status=pending, meta_input)</text>
+
+  <line class="msg" x1="525" y1="270" x2="755" y2="270" marker-end="url(#a4)"/>
+  <text class="mlabel" x="640" y="262">5. save_post_deal fires</text>
+
+  <path class="msg" d="M755,290 C820,300 820,320 755,330" marker-end="url(#a4)"/>
+  <text class="mlabel" x="800" y="315">6. create hidden</text>
+  <text class="mlabel" x="800" y="326">WC product (draft)</text>
+
+  <line class="ret" x1="295" y1="370" x2="887" y2="370" marker-end="url(#a4)"/>
+  <text class="mlabel" x="590" y="362">7. email: deal awaiting review</text>
+
+  <line class="msg" x1="887" y1="410" x2="525" y2="410" marker-end="url(#a4)"/>
+  <text class="mlabel" x="705" y="402">8. Publish from wp-admin</text>
+
+  <line class="msg" x1="525" y1="440" x2="755" y2="440" marker-end="url(#a4)"/>
+  <text class="mlabel" x="640" y="432">9. save_post_deal fires again</text>
+
+  <path class="msg" d="M755,450 C820,460 820,470 755,478" marker-end="url(#a4)"/>
+  <text class="mlabel" x="820" y="468">10. product → publish</text>
+</svg>

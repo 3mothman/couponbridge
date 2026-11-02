@@ -1,0 +1,62 @@
+<svg viewBox="0 0 900 460" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="System context: Customer, Merchant and Admin interact with the Highbridge system, which in turn calls an SMTP provider and a QR code API">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#17293F"/>
+    </marker>
+  </defs>
+  <style>
+    text{ font-family: "DM Sans", Arial, sans-serif; fill:#15202b; }
+    .title{ font-weight:700; font-size:13px; }
+    .sub{ font-size:10.5px; fill:#5b6773; }
+    .label{ font-size:10.5px; fill:#3F7A72; font-weight:600; }
+    .person{ fill:#eef2f6; stroke:#17293F; stroke-width:1.5; }
+    .system{ fill:#17293F; }
+    .systemtext{ fill:#ffffff; }
+    .ext{ fill:#ffffff; stroke:#3F7A72; stroke-width:1.5; }
+  </style>
+
+  <!-- actors -->
+  <rect class="person" x="30" y="40" width="180" height="60" rx="8"/>
+  <text class="title" x="120" y="65" text-anchor="middle">Customer</text>
+  <text class="sub" x="120" y="82" text-anchor="middle">benefit recipient</text>
+
+  <rect class="person" x="30" y="190" width="180" height="60" rx="8"/>
+  <text class="title" x="120" y="215" text-anchor="middle">Merchant</text>
+  <text class="sub" x="120" y="232" text-anchor="middle">local business</text>
+
+  <rect class="person" x="30" y="340" width="180" height="60" rx="8"/>
+  <text class="title" x="120" y="365" text-anchor="middle">Admin</text>
+  <text class="sub" x="120" y="382" text-anchor="middle">site operator</text>
+
+  <!-- system -->
+  <rect class="system" x="330" y="140" width="260" height="180" rx="10"/>
+  <text class="title" x="460" y="200" text-anchor="middle" style="fill:#ffffff">Highbridge</text>
+  <text class="sub" x="460" y="220" text-anchor="middle" style="fill:#cfe0ee">WordPress + WooCommerce</text>
+  <text class="sub" x="460" y="236" text-anchor="middle" style="fill:#cfe0ee">theme "angebot" + plugin "angebot-deals"</text>
+  <text class="sub" x="460" y="252" text-anchor="middle" style="fill:#cfe0ee">on Hostinger, behind LiteSpeed Cache</text>
+
+  <!-- externals -->
+  <rect class="ext" x="700" y="70" width="170" height="60" rx="8"/>
+  <text class="title" x="785" y="95" text-anchor="middle">SMTP provider</text>
+  <text class="sub" x="785" y="112" text-anchor="middle">outgoing email</text>
+
+  <rect class="ext" x="700" y="330" width="170" height="60" rx="8"/>
+  <text class="title" x="785" y="355" text-anchor="middle">api.qrserver.com</text>
+  <text class="sub" x="785" y="372" text-anchor="middle">QR code images</text>
+
+  <!-- arrows -->
+  <line x1="210" y1="70" x2="330" y2="190" marker-end="url(#arrow)" stroke="#17293F" stroke-width="1.5"/>
+  <text class="label" x="230" y="120">browse, register, buy, redeem</text>
+
+  <line x1="210" y1="220" x2="330" y2="230" marker-end="url(#arrow)" stroke="#17293F" stroke-width="1.5"/>
+  <text class="label" x="230" y="205">submit deals, redeem vouchers</text>
+
+  <line x1="210" y1="370" x2="330" y2="280" marker-end="url(#arrow)" stroke="#17293F" stroke-width="1.5"/>
+  <text class="label" x="230" y="320">manage, review, publish</text>
+
+  <line x1="590" y1="210" x2="700" y2="115" marker-end="url(#arrow)" stroke="#3F7A72" stroke-width="1.5"/>
+  <text class="label" x="600" y="150">wp_mail()</text>
+
+  <line x1="590" y1="260" x2="700" y2="345" marker-end="url(#arrow)" stroke="#3F7A72" stroke-width="1.5"/>
+  <text class="label" x="600" y="310">image src</text>
+</svg>

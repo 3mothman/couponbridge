@@ -1,0 +1,63 @@
+<svg viewBox="0 0 920 540" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sequence diagram: customer adds a deal to cart, is gated by membership status, checks out, receives a voucher by email, and a merchant redeems it">
+  <defs>
+    <marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#17293F"/>
+    </marker>
+  </defs>
+  <style>
+    text{ font-family:"DM Sans", Arial, sans-serif; fill:#15202b; }
+    .actor{ font-weight:700; font-size:11px; text-anchor:middle; }
+    .lifeline{ stroke:#c8d0d8; stroke-width:1; stroke-dasharray:3 3; }
+    .head{ fill:#eef2f6; stroke:#17293F; stroke-width:1.3; }
+    .msg{ stroke:#17293F; stroke-width:1.3; fill:none; }
+    .ret{ stroke:#3F7A72; stroke-width:1.3; fill:none; stroke-dasharray:5 3; }
+    .mlabel{ font-size:9.5px; text-anchor:middle; fill:#15202b; }
+  </style>
+
+  <!-- lifelines -->
+  <g>
+    <rect class="head" x="50" y="20" width="120" height="34" rx="6"/><text class="actor" x="110" y="41">Customer</text>
+    <line class="lifeline" x1="110" y1="54" x2="110" y2="520"/>
+
+    <rect class="head" x="260" y="20" width="130" height="34" rx="6"/><text class="actor" x="325" y="41">WooCommerce</text>
+    <line class="lifeline" x1="325" y1="54" x2="325" y2="520"/>
+
+    <rect class="head" x="480" y="20" width="130" height="34" rx="6"/><text class="actor" x="545" y="41">Membership</text>
+    <line class="lifeline" x1="545" y1="54" x2="545" y2="520"/>
+
+    <rect class="head" x="680" y="20" width="110" height="34" rx="6"/><text class="actor" x="735" y="41">Voucher</text>
+    <line class="lifeline" x1="735" y1="54" x2="735" y2="520"/>
+
+    <rect class="head" x="850" y="20" width="60" height="34" rx="6"/>
+    <text class="actor" x="880" y="35">Merch-</text><text class="actor" x="880" y="47">ant</text>
+    <line class="lifeline" x1="880" y1="54" x2="880" y2="520"/>
+  </g>
+
+  <!-- messages -->
+  <line class="msg" x1="110" y1="90" x2="325" y2="90" marker-end="url(#a3)"/>
+  <text class="mlabel" x="217" y="82">1. Add deal to cart</text>
+
+  <line class="msg" x1="325" y1="140" x2="545" y2="140" marker-end="url(#a3)"/>
+  <text class="mlabel" x="435" y="132">2. can_purchase(user)?</text>
+
+  <line class="ret" x1="545" y1="180" x2="325" y2="180" marker-end="url(#a3)"/>
+  <text class="mlabel" x="435" y="172">3. allowed (verified)</text>
+
+  <line class="msg" x1="110" y1="230" x2="325" y2="230" marker-end="url(#a3)"/>
+  <text class="mlabel" x="217" y="222">4. Checkout &amp; pay</text>
+
+  <line class="msg" x1="325" y1="280" x2="735" y2="280" marker-end="url(#a3)"/>
+  <text class="mlabel" x="530" y="272">5. order completed</text>
+
+  <line class="ret" x1="735" y1="330" x2="110" y2="330" marker-end="url(#a3)"/>
+  <text class="mlabel" x="420" y="322">6. email: code + QR</text>
+
+  <line class="msg" x1="110" y1="390" x2="880" y2="390" marker-end="url(#a3)"/>
+  <text class="mlabel" x="495" y="382">7. show code / QR in store</text>
+
+  <line class="msg" x1="880" y1="440" x2="735" y2="440" marker-end="url(#a3)"/>
+  <text class="mlabel" x="805" y="432">8. redeem()</text>
+
+  <line class="ret" x1="735" y1="480" x2="880" y2="480" marker-end="url(#a3)"/>
+  <text class="mlabel" x="805" y="472">9. status = redeemed</text>
+</svg>
