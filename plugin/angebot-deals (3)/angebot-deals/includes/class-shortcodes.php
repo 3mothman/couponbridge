@@ -165,12 +165,15 @@ final class Angebot_Deals_Shortcodes
         if ($location === '') {
             $location = Angebot_Deals_Location::current();
         }
-        // Allow "all" to skip location filter.
-        if ($location !== '' && $location !== 'all') {
+        // "All" means all four supported service cities.
+        if ($location !== 'all') {
+            $location = Angebot_Deals_Location::sanitize_default($location);
+        }
+        if ($location !== '') {
             $tax_query[] = [
                 'taxonomy' => Angebot_Deals_Deal_CPT::TAX_LOCATION,
                 'field'    => 'slug',
-                'terms'    => $location,
+                'terms'    => $location === 'all' ? array_keys(Angebot_Deals_Location::CITIES) : $location,
             ];
         }
 

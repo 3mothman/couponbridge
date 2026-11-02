@@ -21,8 +21,8 @@ final class Angebot_Deals_Demo_Content
         $samples = [
             [
                 'title'    => '3-Course Menu for 2',
-                'merchant' => 'Bistro Merseburg',
-                'location' => 'merseburg',
+                'merchant' => 'Coventry Bistro',
+                'location' => 'coventry',
                 'category' => 'food-drink',
                 'original' => 79.00,
                 'deal'     => 39.00,
@@ -33,8 +33,8 @@ final class Angebot_Deals_Demo_Content
             ],
             [
                 'title'    => '60 Min. Classic Massage',
-                'merchant' => 'Spa Halle',
-                'location' => 'halle',
+                'merchant' => 'Nuneaton Spa',
+                'location' => 'nuneaton',
                 'category' => 'beauty-wellness',
                 'original' => 65.00,
                 'deal'     => 29.90,
@@ -45,8 +45,8 @@ final class Angebot_Deals_Demo_Content
             ],
             [
                 'title'    => 'Indoor Trampoline 2 Hrs',
-                'merchant' => 'Jump Arena Leipzig',
-                'location' => 'leipzig',
+                'merchant' => 'Rugby Jump Arena',
+                'location' => 'rugby',
                 'category' => 'leisure',
                 'original' => 28.00,
                 'deal'     => 14.00,
@@ -56,15 +56,15 @@ final class Angebot_Deals_Demo_Content
                 'content'  => '<p>Two hours of fun for kids and adults. Socks required.</p>',
             ],
             [
-                'title'    => 'Berlin Mitte City Tour',
-                'merchant' => 'Berlin City Guides',
-                'location' => 'berlin',
+                'title'    => 'Birmingham City Tour',
+                'merchant' => 'Birmingham City Guides',
+                'location' => 'birmingham',
                 'category' => 'activities',
                 'original' => 25.00,
                 'deal'     => 12.50,
                 'qty'      => 80,
                 'featured' => 1,
-                'excerpt'  => '2 hours of highlights around Alexanderplatz.',
+                'excerpt'  => '2 hours of highlights around Birmingham city centre.',
                 'content'  => '<p>Small groups, English-speaking. Meeting point shared after purchase.</p>',
             ],
         ];

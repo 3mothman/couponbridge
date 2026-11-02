@@ -3,6 +3,20 @@
 
   const cfg = window.AngebotDeals || {};
 
+  document.querySelectorAll('input[name="angebot_account_type"]').forEach(function (radio) {
+    function updateAccountType() {
+      radio.form.querySelectorAll('[data-account-note]').forEach(function (note) {
+        note.hidden = note.dataset.accountNote !== radio.value;
+        note.querySelectorAll('select[name="angebot_business_category"]').forEach(function (select) {
+          select.disabled = note.hidden;
+          select.required = !note.hidden;
+        });
+      });
+    }
+    radio.addEventListener('change', updateAccountType);
+    if (radio.checked) updateAccountType();
+  });
+
   function qs(sel, root) {
     return (root || document).querySelector(sel);
   }

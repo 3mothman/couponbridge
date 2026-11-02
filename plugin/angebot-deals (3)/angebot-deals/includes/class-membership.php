@@ -27,6 +27,7 @@ final class Angebot_Deals_Membership
         add_action('woocommerce_register_form', [self::class, 'render_registration_fields']);
         add_filter('woocommerce_registration_errors', [self::class, 'validate_registration'], 10, 3);
         add_action('woocommerce_created_customer', [self::class, 'save_registration_fields']);
+        add_filter('woocommerce_registration_redirect', [self::class, 'registration_redirect']);
 
         // Login and registration as two separate pages instead of the
         // WooCommerce default of showing both forms side by side on
@@ -124,6 +125,10 @@ final class Angebot_Deals_Membership
 
     public static function account_menu_items(array $items): array
     {
+        if (Angebot_Deals_Seller_Documents::is_seller(get_current_user_id()) && !current_user_can('manage_options')) {
+            unset($items['membership'], $items['orders'], $items['downloads'], $items['edit-address'], $items['my-deals']);
+            return $items;
+        }
         $insert = ['membership' => __('Membership', 'angebot-deals')];
         $pos    = array_search('orders', array_keys($items), true);
 
@@ -143,6 +148,10 @@ final class Angebot_Deals_Membership
 
     public static function account_endpoint_content(): void
     {
+        if (Angebot_Deals_Seller_Documents::is_seller(get_current_user_id()) && !current_user_can('manage_options')) {
+            echo Angebot_Deals_Seller_Documents::render_form();
+            return;
+        }
         $user_id    = get_current_user_id();
         $status     = self::get_status($user_id);
         $submission = class_exists('Angebot_Deals_Eligibility') ? Angebot_Deals_Eligibility::get_latest_for_user($user_id) : null;
@@ -187,6 +196,9 @@ final class Angebot_Deals_Membership
         if (user_can($user_id, 'manage_options')) {
             return true;
         }
+        if (Angebot_Deals_Seller_Documents::is_seller($user_id)) {
+            return false;
+        }
         return self::get_status($user_id) === self::STATUS_VERIFIED;
     }
 
@@ -212,6 +224,13 @@ final class Angebot_Deals_Membership
         }
 
         $user_id = get_current_user_id();
+        if (Angebot_Deals_Seller_Documents::is_seller($user_id) && !current_user_can('manage_options')) {
+            return [
+                'url' => wc_get_account_endpoint_url(Angebot_Deals_Merchant_Portal::ENDPOINT),
+                'label' => __('Seller account', 'angebot-deals'),
+                'disabled' => true,
+            ];
+        }
         if (!self::can_purchase($user_id)) {
             $labels = [
                 self::STATUS_PENDING  => __('Verification pending', 'angebot-deals'),
@@ -286,11 +305,8 @@ final class Angebot_Deals_Membership
                 <label for="angebot_reg_postcode"><?php esc_html_e('Postcode', 'angebot-deals'); ?>&nbsp;<span class="required">*</span></label>
                 <input type="text" class="woocommerce-Input woocommerce-Input--text input-text" name="angebot_reg_postcode" id="angebot_reg_postcode" value="<?php echo esc_attr($postcode); ?>" required>
             </p>
-            <?php if ($account_type === 'merchant') : ?>
-                <p class="angebot-reg-note"><?php esc_html_e('We use these details to verify your business and contact you about deals. You can submit deals after our team approves your seller account.', 'angebot-deals'); ?></p>
-            <?php else : ?>
-                <p class="angebot-reg-note"><?php esc_html_e('We ask for these details because Highbridge membership is restricted to UK benefit recipients. After registering you will be asked to verify your eligibility.', 'angebot-deals'); ?></p>
-            <?php endif; ?>
+                <p class="angebot-reg-note" data-account-note="merchant" <?php echo $account_type !== 'merchant' ? 'hidden' : ''; ?>><?php esc_html_e('Our team reviews your seller account before you can submit deals. After registration you may optionally upload a business document in the Merchant Portal. Benefit eligibility evidence is not required for sellers.', 'angebot-deals'); ?></p>
+                <p class="angebot-reg-note" data-account-note="customer" <?php echo $account_type !== 'customer' ? 'hidden' : ''; ?>><?php esc_html_e('We ask for these details because Highbridge membership is restricted to UK benefit recipients. After registering you will be asked to verify your eligibility.', 'angebot-deals'); ?></p>
         </fieldset>
         <?php
     }
@@ -381,9 +397,8 @@ final class Angebot_Deals_Membership
 
         $account_type = self::sanitize_account_type($_POST['angebot_account_type'] ?? '');
         if ($account_type === 'merchant') {
-            // add_role() (not set_role()) keeps WooCommerce's default
-            // "customer" role alongside it, so a merchant can still buy
-            // deals for themselves like anyone else if they choose to.
+            // Keep the WooCommerce role for compatibility; account routing
+            // and purchase eligibility use the seller role explicitly.
             $user = new WP_User($customer_id);
             $user->add_role(Angebot_Deals_Merchant_Role::ROLE);
             update_user_meta($customer_id, '_angebot_merchant_status', 'pending');
@@ -466,11 +481,23 @@ final class Angebot_Deals_Membership
 
     private static function gate_message(): string
     {
+        if (Angebot_Deals_Seller_Documents::is_seller(get_current_user_id()) && !current_user_can('manage_options')) {
+            return __('This is a seller account. Use the Merchant Portal to manage your business.', 'angebot-deals');
+        }
         $url = function_exists('wc_get_account_endpoint_url') ? wc_get_account_endpoint_url(self::ENDPOINT) : '';
         return sprintf(
             /* translators: %s: membership page URL */
             __('Highbridge deals are only available to verified members. <a href="%s">Verify your eligibility</a> to unlock purchasing.', 'angebot-deals'),
             esc_url($url)
+        );
+    }
+
+    public static function registration_redirect(string $redirect): string
+    {
+        return wc_get_account_endpoint_url(
+            Angebot_Deals_Seller_Documents::is_seller(get_current_user_id())
+                ? Angebot_Deals_Merchant_Portal::ENDPOINT
+                : self::ENDPOINT
         );
     }
 
@@ -507,6 +534,9 @@ final class Angebot_Deals_Membership
                 ['name' => __('Membership status', 'angebot-deals'), 'value' => self::status_label($status)],
             ],
         ]];
+        if (Angebot_Deals_Seller_Documents::is_seller((int) $user->ID)) {
+            $items[0]['data'][] = ['name' => __('Business category', 'angebot-deals'), 'value' => Angebot_Deals_Seller_Category::label((int) $user->ID)];
+        }
 
         return ['data' => $items, 'done' => true];
     }
@@ -527,9 +557,10 @@ final class Angebot_Deals_Membership
             return ['items_removed' => false, 'items_retained' => false, 'messages' => [], 'done' => true];
         }
 
-        foreach (['_angebot_full_name', '_angebot_date_of_birth', '_angebot_phone', '_angebot_membership_status'] as $key) {
+        foreach (['_angebot_full_name', '_angebot_date_of_birth', '_angebot_phone', '_angebot_membership_status', '_angebot_business_category'] as $key) {
             delete_user_meta($user->ID, $key);
         }
+        Angebot_Deals_Seller_Documents::delete_document((int) $user->ID);
 
         return ['items_removed' => true, 'items_retained' => false, 'messages' => [], 'done' => true];
     }

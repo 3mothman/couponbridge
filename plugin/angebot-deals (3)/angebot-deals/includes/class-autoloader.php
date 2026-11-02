@@ -19,6 +19,8 @@ final class Angebot_Deals_Autoloader
         'Angebot_Deals_QR_Code'          => 'class-qr-code.php',
         'Angebot_Deals_Merchant_Role'    => 'class-merchant-role.php',
         'Angebot_Deals_Merchant_Portal'  => 'class-merchant-portal.php',
+        'Angebot_Deals_Seller_Documents' => 'class-seller-documents.php',
+        'Angebot_Deals_Seller_Category'  => 'class-seller-category.php',
         'Angebot_Deals_Shortcodes'       => 'class-shortcodes.php',
         'Angebot_Deals_Ajax_Filters'     => 'class-ajax-filters.php',
         'Angebot_Deals_Reviews'          => 'class-reviews.php',

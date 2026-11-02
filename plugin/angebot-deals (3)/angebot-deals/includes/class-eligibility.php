@@ -174,6 +174,9 @@ final class Angebot_Deals_Eligibility
 
     public static function render_form(int $user_id): string
     {
+        if (Angebot_Deals_Seller_Documents::is_seller($user_id) && !user_can($user_id, 'manage_options')) {
+            return Angebot_Deals_Seller_Documents::render_form();
+        }
         $benefit_types = self::benefit_types();
         $proof_types   = self::proof_types();
         $privacy_page  = get_page_by_path('privacy');
@@ -220,6 +223,9 @@ final class Angebot_Deals_Eligibility
         check_admin_referer('angebot_eligibility_submit', 'angebot_eligibility_nonce');
 
         $user_id = get_current_user_id();
+        if (Angebot_Deals_Seller_Documents::is_seller($user_id) && !current_user_can('manage_options')) {
+            wp_die(esc_html__('Seller accounts use business verification in the Merchant Portal.', 'angebot-deals'), '', ['response' => 403]);
+        }
         $current = Angebot_Deals_Membership::get_status($user_id);
         if (in_array($current, [Angebot_Deals_Membership::STATUS_PENDING, Angebot_Deals_Membership::STATUS_VERIFIED], true)) {
             self::redirect_back('error_state');

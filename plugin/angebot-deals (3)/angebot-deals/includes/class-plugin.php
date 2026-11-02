@@ -29,6 +29,8 @@ final class Angebot_Deals_Plugin
         Angebot_Deals_Voucher_Email::register_hooks();
         Angebot_Deals_Merchant_Role::register_hooks();
         Angebot_Deals_Merchant_Portal::register_hooks();
+        Angebot_Deals_Seller_Documents::register_hooks();
+        Angebot_Deals_Seller_Category::register_hooks();
         Angebot_Deals_Shortcodes::register_hooks();
         Angebot_Deals_Ajax_Filters::register_hooks();
         Angebot_Deals_Reviews::register_hooks();

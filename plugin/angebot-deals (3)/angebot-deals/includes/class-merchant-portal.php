@@ -38,6 +38,10 @@ final class Angebot_Deals_Merchant_Portal
 
     public static function account_menu_items(array $items): array
     {
+        if (Angebot_Deals_Seller_Documents::is_seller(get_current_user_id()) && !current_user_can('manage_options')) {
+            // Runs after the voucher module adds its buyer menu entry.
+            unset($items['membership'], $items['my-deals'], $items['orders'], $items['downloads'], $items['edit-address']);
+        }
         if (!current_user_can('angebot_redeem_voucher') && !current_user_can('angebot_submit_deal')) {
             return $items;
         }
@@ -92,12 +96,14 @@ final class Angebot_Deals_Merchant_Portal
         ?>
         <div class="wrap"><h1><?php esc_html_e('Seller verification', 'angebot-deals'); ?></h1>
         <p><?php esc_html_e('Review each seller’s name and contact details in their user profile before approving them.', 'angebot-deals'); ?></p>
-        <table class="widefat striped"><thead><tr><th><?php esc_html_e('Seller', 'angebot-deals'); ?></th><th><?php esc_html_e('Contact details', 'angebot-deals'); ?></th><th><?php esc_html_e('Status', 'angebot-deals'); ?></th><th><?php esc_html_e('Action', 'angebot-deals'); ?></th></tr></thead><tbody>
+        <p><?php esc_html_e('Business documents are optional. You decide whether to approve each seller, with or without a document.', 'angebot-deals'); ?></p>
+        <table class="widefat striped"><thead><tr><th><?php esc_html_e('Seller', 'angebot-deals'); ?></th><th><?php esc_html_e('Contact details', 'angebot-deals'); ?></th><th><?php esc_html_e('Business document', 'angebot-deals'); ?></th><th><?php esc_html_e('Status', 'angebot-deals'); ?></th><th><?php esc_html_e('Action', 'angebot-deals'); ?></th></tr></thead><tbody>
         <?php foreach ($users as $user) : $status = (string) get_user_meta($user->ID, '_angebot_merchant_status', true); $status = $status ?: 'pending'; ?>
-            <tr><td><strong><?php echo esc_html($user->display_name); ?></strong><br><?php echo esc_html($user->user_email); ?></td>
+            <tr><td><strong><?php echo esc_html($user->display_name); ?></strong><br><?php echo esc_html($user->user_email); ?><br><?php esc_html_e('Business category: ', 'angebot-deals'); echo esc_html(Angebot_Deals_Seller_Category::label((int) $user->ID)); ?></td>
             <td><?php echo esc_html((string) get_user_meta($user->ID, '_angebot_phone', true)); ?><br><?php echo esc_html(implode(', ', array_filter([(string) get_user_meta($user->ID, 'billing_address_1', true), (string) get_user_meta($user->ID, 'billing_city', true), (string) get_user_meta($user->ID, 'billing_postcode', true)]))); ?><br><a href="<?php echo esc_url(get_edit_user_link($user->ID)); ?>"><?php esc_html_e('View profile', 'angebot-deals'); ?></a></td>
+            <td><?php echo Angebot_Deals_Seller_Documents::document_link((int) $user->ID); ?></td>
             <td><?php echo esc_html(ucfirst($status)); ?></td><td><?php if ($status !== 'approved') : ?><form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>"><?php wp_nonce_field('angebot_merchant_decision_' . $user->ID); ?><input type="hidden" name="action" value="angebot_merchant_decision"><input type="hidden" name="user_id" value="<?php echo esc_attr((string) $user->ID); ?>"><input type="hidden" name="decision" value="approved"><button class="button button-primary"><?php esc_html_e('Approve seller', 'angebot-deals'); ?></button></form><?php else : esc_html_e('Approved', 'angebot-deals'); endif; ?></td></tr>
-        <?php endforeach; if (!$users) : ?><tr><td colspan="4"><?php esc_html_e('No seller accounts found.', 'angebot-deals'); ?></td></tr><?php endif; ?>
+        <?php endforeach; if (!$users) : ?><tr><td colspan="5"><?php esc_html_e('No seller accounts found.', 'angebot-deals'); ?></td></tr><?php endif; ?>
         </tbody></table></div><?php
     }
 
@@ -161,10 +167,11 @@ final class Angebot_Deals_Merchant_Portal
             return '<p>' . esc_html__('Please log in as a merchant to redeem vouchers.', 'angebot-deals') . '</p>';
         }
         if (!current_user_can('manage_options') && !self::is_merchant_approved(get_current_user_id())) {
-            return '<p>' . esc_html__('Your seller account is awaiting verification by our team. The Merchant Portal will be available after approval.', 'angebot-deals') . '</p>';
+            return Angebot_Deals_Seller_Documents::render_form();
         }
 
         ob_start();
+        echo Angebot_Deals_Seller_Documents::render_form();
         include ANGEBOT_DEALS_PATH . 'templates/merchant-portal.php';
         return (string) ob_get_clean();
     }
@@ -177,6 +184,9 @@ final class Angebot_Deals_Merchant_Portal
     {
         if (!current_user_can('manage_options') && !self::is_merchant_approved(get_current_user_id())) {
             return '<p>' . esc_html__('Your seller account is awaiting verification by our team. You can submit deals after approval.', 'angebot-deals') . '</p>';
+        }
+        if (!current_user_can('manage_options') && !Angebot_Deals_Seller_Category::get(get_current_user_id())) {
+            return '<p>' . esc_html__('Please choose your business category above before submitting an offer.', 'angebot-deals') . '</p>';
         }
         $categories = get_terms(['taxonomy' => Angebot_Deals_Deal_CPT::TAX_CATEGORY, 'hide_empty' => false]);
         $locations  = get_terms(['taxonomy' => Angebot_Deals_Deal_CPT::TAX_LOCATION, 'hide_empty' => false]);
@@ -253,8 +263,12 @@ final class Angebot_Deals_Merchant_Portal
         $highlights  = isset($_POST['highlights']) ? sanitize_textarea_field(wp_unslash($_POST['highlights'])) : '';
         $fine_print  = isset($_POST['fine_print']) ? sanitize_textarea_field(wp_unslash($_POST['fine_print'])) : '';
 
-        $valid_category = $category_id && !is_wp_error(get_term($category_id, Angebot_Deals_Deal_CPT::TAX_CATEGORY));
-        $valid_location  = $location_id && !is_wp_error(get_term($location_id, Angebot_Deals_Deal_CPT::TAX_LOCATION));
+        $valid_category = Angebot_Deals_Seller_Category::valid($category_id);
+        if (!current_user_can('manage_options') && !Angebot_Deals_Seller_Category::get(get_current_user_id())) {
+            self::redirect_deal_notice('error_fields');
+        }
+        $location = get_term($location_id, Angebot_Deals_Deal_CPT::TAX_LOCATION);
+        $valid_location = $location && !is_wp_error($location) && isset(Angebot_Deals_Location::CITIES[$location->slug]);
 
         if ($title === '' || $content === '' || $original <= 0 || $price <= 0 || $price >= $original
             || $quantity < 1 || !$valid_category || !$valid_location

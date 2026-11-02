@@ -28,7 +28,7 @@ if (!defined('ABSPATH')) {
             <select name="deal_category" id="deal_category" required>
                 <option value=""><?php esc_html_e('— Please choose —', 'angebot-deals'); ?></option>
                 <?php if (!is_wp_error($categories)) : foreach ($categories as $term) : ?>
-                    <option value="<?php echo esc_attr((string) $term->term_id); ?>"><?php echo esc_html($term->name); ?></option>
+                    <option value="<?php echo esc_attr((string) $term->term_id); ?>" <?php selected(Angebot_Deals_Seller_Category::get(get_current_user_id()), (int) $term->term_id); ?>><?php echo esc_html($term->name); ?></option>
                 <?php endforeach; endif; ?>
             </select>
         </label>

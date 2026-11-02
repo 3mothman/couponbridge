@@ -46,8 +46,8 @@ final class Angebot_Deals_Admin
     {
         register_setting('angebot_deals', 'angebot_default_location', [
             'type'              => 'string',
-            'sanitize_callback' => 'sanitize_title',
-            'default'           => 'berlin',
+            'sanitize_callback' => [Angebot_Deals_Location::class, 'sanitize_default'],
+            'default'           => 'coventry',
         ]);
         register_setting('angebot_deals', 'angebot_brand_name', [
             'type'              => 'string',
@@ -84,7 +84,11 @@ final class Angebot_Deals_Admin
                     <tr>
                         <th><label for="angebot_default_location"><?php esc_html_e('Default location (slug)', 'angebot-deals'); ?></label></th>
                         <td>
-                            <input type="text" class="regular-text" id="angebot_default_location" name="angebot_default_location" value="<?php echo esc_attr((string) get_option('angebot_default_location', 'berlin')); ?>">
+                            <select id="angebot_default_location" name="angebot_default_location">
+                                <?php foreach (Angebot_Deals_Location::CITIES as $slug => $city) : ?>
+                                    <option value="<?php echo esc_attr($slug); ?>" <?php selected(Angebot_Deals_Location::sanitize_default(get_option('angebot_default_location', 'coventry')), $slug); ?>><?php echo esc_html($city); ?></option>
+                                <?php endforeach; ?>
+                            </select>
                         </td>
                     </tr>
                 </table>
@@ -97,7 +101,7 @@ final class Angebot_Deals_Admin
                     <?php printf(esc_html__('%d demo deals created.', 'angebot-deals'), absint($_GET['demo_seeded'])); ?>
                 </p></div>
             <?php endif; ?>
-            <p><?php esc_html_e('Creates a few sample deals (Berlin, Halle, Leipzig, Merseburg) so you can test design & checkout right away.', 'angebot-deals'); ?></p>
+            <p><?php esc_html_e('Creates sample deals in Coventry, Nuneaton, Rugby and Birmingham so you can test design and checkout.', 'angebot-deals'); ?></p>
             <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
                 <input type="hidden" name="action" value="angebot_seed_demo">
                 <?php wp_nonce_field('angebot_seed_demo'); ?>

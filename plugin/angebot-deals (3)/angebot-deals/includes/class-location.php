@@ -8,12 +8,19 @@ if (!defined('ABSPATH')) {
 final class Angebot_Deals_Location
 {
     public const COOKIE = 'angebot_location';
+    public const CITIES = [
+        'coventry' => 'Coventry',
+        'nuneaton' => 'Nuneaton',
+        'rugby' => 'Rugby',
+        'birmingham' => 'Birmingham',
+    ];
 
     public static function register_hooks(): void
     {
         add_action('wp_ajax_angebot_set_location', [self::class, 'ajax_set']);
         add_action('wp_ajax_nopriv_angebot_set_location', [self::class, 'ajax_set']);
         add_action('init', [self::class, 'seed_default_locations'], 20);
+        add_filter('get_terms_args', [self::class, 'filter_city_choices'], 10, 2);
 
         // Tell LiteSpeed Cache (and compatible cache plugins) to serve a
         // separate cached version per location cookie, instead of one
@@ -31,9 +38,29 @@ final class Angebot_Deals_Location
     public static function current(): string
     {
         if (!empty($_COOKIE[self::COOKIE])) {
-            return sanitize_title(wp_unslash($_COOKIE[self::COOKIE]));
+            $slug = sanitize_title(wp_unslash($_COOKIE[self::COOKIE]));
+            if (isset(self::CITIES[$slug])) {
+                return $slug;
+            }
         }
-        return (string) get_option('angebot_default_location', 'berlin');
+        return self::sanitize_default(get_option('angebot_default_location', 'coventry'));
+    }
+
+    public static function sanitize_default($value): string
+    {
+        $slug = sanitize_title((string) $value);
+        return isset(self::CITIES[$slug]) ? $slug : 'coventry';
+    }
+
+    public static function filter_city_choices(array $args, array $taxonomies): array
+    {
+        // Limit lists (including the theme footer and admin choices), while
+        // preserving direct lookups and existing object relationships.
+        if ($taxonomies === [Angebot_Deals_Deal_CPT::TAX_LOCATION]
+            && empty($args['object_ids']) && empty($args['slug']) && empty($args['name'])) {
+            $args['slug'] = array_keys(self::CITIES);
+        }
+        return $args;
     }
 
     public static function current_label(): string
@@ -76,8 +103,9 @@ final class Angebot_Deals_Location
     {
         check_ajax_referer('angebot_public', 'nonce');
         $slug = isset($_POST['location']) ? sanitize_title(wp_unslash($_POST['location'])) : '';
-        if ($slug === '') {
-            wp_send_json_error(['message' => 'empty']);
+        if (!isset(self::CITIES[$slug])) {
+            wp_send_json_error(['message' => 'unsupported_location']);
+            return;
         }
 
         setcookie(self::COOKIE, $slug, time() + YEAR_IN_SECONDS, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true);
@@ -88,19 +116,16 @@ final class Angebot_Deals_Location
 
     public static function seed_default_locations(): void
     {
-        if (get_option('angebot_locations_seeded')) {
+        if (get_option('angebot_service_cities_version') === '1') {
             return;
         }
 
-        $cities = [
-            'Berlin', 'Hamburg', 'München', 'Köln', 'Frankfurt', 'Stuttgart',
-            'Düsseldorf', 'Leipzig', 'Dortmund', 'Essen', 'Bremen', 'Dresden',
-            'Hannover', 'Nürnberg', 'Halle', 'Merseburg', 'Magdeburg',
-        ];
-
-        foreach ($cities as $city) {
-            if (!term_exists($city, Angebot_Deals_Deal_CPT::TAX_LOCATION)) {
-                wp_insert_term($city, Angebot_Deals_Deal_CPT::TAX_LOCATION);
+        foreach (self::CITIES as $slug => $city) {
+            if (!get_term_by('slug', $slug, Angebot_Deals_Deal_CPT::TAX_LOCATION)) {
+                $created = wp_insert_term($city, Angebot_Deals_Deal_CPT::TAX_LOCATION, ['slug' => $slug]);
+                if (is_wp_error($created)) {
+                    return; // Retry next request if a city could not be created.
+                }
             }
         }
 
@@ -116,6 +141,7 @@ final class Angebot_Deals_Location
         }
 
         update_option('angebot_locations_seeded', 1);
-        update_option('angebot_default_location', 'berlin');
+        update_option('angebot_service_cities_version', '1');
+        update_option('angebot_default_location', self::sanitize_default(get_option('angebot_default_location', 'coventry')));
     }
 }

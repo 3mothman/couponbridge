@@ -23,11 +23,11 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for context, containers, plugin component
 5. Complete WooCommerce setup (**currency GBP £**, store address in the UK).
 6. Set **Settings → General → Site Language** to **English (UK)** — required so WordPress menus/admin are fully English (not German).
 7. Payments: install **WooCommerce Stripe Gateway** and/or **PayPal Payments**, add live keys, turn off test mode when going live.
-8. Optional: **Deals → Settings → Create demo deals** (the current sample data uses German locations; see the market-configuration note below).
+8. Optional: **Deals → Settings → Create demo deals** (sample data uses Coventry, Nuneaton, Rugby and Birmingham).
 9. Open legal pages (`/company-info`, `/terms`, `/cancellation`, `/privacy`) and replace placeholders with real UK company details — ideally have a solicitor review them.
 10. Upload your logo under **Appearance → Customizer → Logo**. Set the brand name under **Deals → Settings**.
 
-**Market configuration needs alignment:** eligibility text, legal templates, and the suggested WooCommerce setup target the UK, but the current location seeder creates German cities and sets **Berlin** as the default. It does not migrate these to UK cities. See [Known inconsistencies](ARCHITECTURE.md#8-known-inconsistencies-and-follow-up) before using this as a UK launch checklist.
+**Service cities:** Coventry, Nuneaton, Rugby and Birmingham. Coventry is the default; existing unsupported city choices and cookies fall back to the configured supported default. Old location records and deal assignments are retained, but unsupported locations are omitted from city lists. The migration runs even on installations seeded by older versions.
 
 ## Plugin features
 
@@ -86,9 +86,43 @@ Benefit type, disability-related proof, and the uploaded document are **special 
 
 ### Merchant workflow
 
+Version 1.5.0 separates buyer and seller accounts. After registration, buyers
+go to Membership to submit benefit evidence; sellers go to the Merchant Portal.
+Seller accounts do not show the Membership or buyer voucher/order tabs and cannot
+purchase member deals. Existing dual-role seller accounts follow this same rule.
+
+Seller registration requires a business category selected from the existing
+deal categories. Buyers do not fill this field. The category is displayed in
+the seller's account, the administrator's seller review and review emails.
+Existing sellers can select their category in the Merchant Portal before
+submitting offers. Their existing offers receive the category when it is saved.
+Each seller's business category is appended to their offers, preserving any
+offer-specific categories, so the existing buyer category filter finds those
+published offers within the selected service city. This is offer discovery;
+a seller without a published offer does not get a separate public listing.
+
+The Merchant Portal is available while a seller awaits approval and offers an
+**optional** business document upload (PDF, JPG or PNG, up to 8 MB). No specific
+business document category is required. A new upload replaces the previous file.
+Uploading never approves the seller automatically. Administrators can review the
+file under **Deals → Seller verification** and approve sellers with or without a
+document. Approval still gates deal submission and voucher redemption.
+
+New seller registrations and document uploads notify the address configured in
+**Deals → Settings → Review notification email**, falling back to the WordPress
+admin email when empty. The message links to the admin review page; no document
+is attached. Mail delivery uses the site's existing `wp_mail`/SMTP transport.
+
+Seller files are stored in a site-specific directory outside the public document
+root and served through a nonce- and permission-checked download handler. Only
+the owner and administrators may download them. Hosting must permit PHP to write
+to the parent of the public document root; otherwise upload fails without making
+the file public. Files are removed on replacement, user deletion, and WordPress
+personal-data erasure. Include this private directory in backup/retention policies.
+
 1. A business gets the **Merchant** role by choosing "I run a local business and want to list deals" on registration. New seller accounts start as **pending verification**.
 2. An administrator reviews the seller's name and contact details under **Deals → Seller verification** and approves the account. Until approval, deal submission and voucher tools are blocked. The seller receives an email after approval. Existing merchant accounts without a saved approval are treated as pending and must also be approved.
-3. Once approved, **My Account → Merchant Portal** appears automatically (no page or shortcode setup needed). There, a merchant can:
+3. **My Account → Merchant Portal** appears automatically (no page or shortcode setup needed). Once approved, a merchant can:
    - **Submit a new deal** — title, required category, city, prices, quota, description, optional photo. It's saved as `pending`; the admin is emailed and publishes it from wp-admin like any other post. (Submitting while logged in as an admin publishes immediately, for quick testing.)
    - See **Your deals** with live status (Live / Pending review / Draft).
    - **Check & redeem** a customer's voucher code/QR, as before.

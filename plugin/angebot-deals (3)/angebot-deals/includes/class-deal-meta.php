@@ -95,7 +95,7 @@ final class Angebot_Deals_Deal_Meta
             </div>
             <div>
                 <label for="location_label"><?php esc_html_e('Location label (display)', 'angebot-deals'); ?></label>
-                <input type="text" id="location_label" name="angebot_meta[location_label]" value="<?php echo esc_attr($data['location_label']); ?>" placeholder="e.g. Berlin-Mitte">
+                <input type="text" id="location_label" name="angebot_meta[location_label]" value="<?php echo esc_attr($data['location_label']); ?>" placeholder="e.g. Coventry city centre">
             </div>
             <div>
                 <label for="voucher_expires"><?php esc_html_e('Voucher expiry date', 'angebot-deals'); ?></label>

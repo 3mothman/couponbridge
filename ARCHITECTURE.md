@@ -6,7 +6,7 @@ This document describes the implementation in the repository's `main` branch. It
 
 Highbridge is a local-deals marketplace implemented as a WordPress site. WooCommerce handles cart, checkout, orders, and products. The `angebot-deals` plugin provides deal listings, membership eligibility, merchant tools, vouchers, and reviews. The `angebot` theme renders the public pages.
 
-The implementation is internally inconsistent about its intended market. Eligibility text and legal templates target UK benefit recipients, while the location seeder still creates German cities and defaults to Berlin. See [Known inconsistencies](#8-known-inconsistencies-and-follow-up) before presenting this as a finished UK marketplace.
+The configured service cities are Coventry, Nuneaton, Rugby and Birmingham, with Coventry as the default. Version 1.5.0 seeds these on existing installations, limits city lists, validates selections and normalizes obsolete defaults and cookies. Legacy location records and assignments are preserved.
 
 ## 2. System context (C4 Level 1)
 
@@ -177,7 +177,7 @@ flowchart LR
 
 These are observed mismatches between repository documentation, packaging, and source. Resolve them before describing the project as a finished UK deployment:
 
-1. **Market and locations:** eligibility copy lists UK benefits, but `class-location.php` seeds German cities and sets Berlin as the default. There is no UK-city seeding or migration in the inspected code; the README now calls out this mismatch.
+1. **Market and locations:** the service area is limited to Coventry, Nuneaton, Rugby and Birmingham. New demo content follows this list; pre-existing demo content is not automatically relabelled or relocated.
 2. **Folder naming:** the source directories in Git retain download suffixes (`angebot-deals (3)` and `angebot-theme (5)`). The packaging script now points to these actual directories, but renaming them to clean paths would make the repository easier to navigate; update the script and documentation with any rename.
 3. **Email delivery:** the application calls `wp_mail()`. Actual delivery depends on the WordPress host or an SMTP/mail plugin; the code does not configure an SMTP provider itself.
 4. **Production readiness:** the repository contains no automated test suite or deployment workflow. Documentation describes implementation behavior, not proof of live-site behavior. Eligibility handling also needs an operational/legal review before real sensitive documents are collected.
